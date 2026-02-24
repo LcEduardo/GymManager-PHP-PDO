@@ -9,14 +9,16 @@ class Plan
     private float $price;
     private string $description;
     private int $active;
+    private int $durantion_days;
 
-    public function __construct(?int $id, string $name, float $price, string $description, int $active)
+    public function __construct(?int $id, string $name, float $price, string $description, int $active, int $durantion_days)
     {
         $this->id = $id;
         $this->name = $name;
         $this->price = $price;
         $this->description = $description;
         $this->active = $active;
+        $this->durantion_days = $durantion_days;
     }
 
     public function getId (){
@@ -53,6 +55,10 @@ class Plan
 
     public function setActive($active): void {
         $this->active = $active;
+    }
+
+    public function getDays() {
+        return $this->durantion_days;
     }
 
 }
