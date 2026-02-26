@@ -2,9 +2,9 @@
 
 require_once 'vendor/autoload.php';
 
-use App\Database\Connection;
-use App\Database\User;
-use App\Database\UserRepository;
+use App\Infra\Connection;
+use App\Domain\User;
+use App\Repository\UserRepository;
 
 $pdo = Connection::getConnection();
 $c = new UserRepository($pdo);

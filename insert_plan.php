@@ -2,8 +2,8 @@
 
 require_once 'vendor/autoload.php';
 
-use App\Database\Connection;
-use App\Database\Plan;
+use App\Infra\Connection;
+use App\Domain\Plan;
 
 $pdo = Connection::getConnection();
 

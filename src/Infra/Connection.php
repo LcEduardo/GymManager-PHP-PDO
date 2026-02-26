@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Database;
+namespace App\Infra;
 
 use PDO;
 use PDOException;
@@ -9,7 +9,7 @@ class Connection
 {
     public static function getConnection(): PDO {
     
-        $databasePath = __DIR__ . '/../gym.sqlite';
+        $databasePath = __DIR__ . '/../../gym.sqlite';
 
         try {
             return  new PDO('sqlite:' . $databasePath);

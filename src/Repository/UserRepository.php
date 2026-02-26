@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Database;
+namespace App\Repository;
 
 require_once 'vendor/autoload.php';
 
-use App\Database\User;
+use App\Domain\User;
 use PDO;
 use PDOException;
 
@@ -37,4 +37,6 @@ class UserRepository
         }
             
     }
+
+    // Create a repository that search an user 
 }

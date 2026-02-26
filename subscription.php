@@ -1,7 +1,7 @@
 <?php
 
-use App\Database\UserSubscription;
-use App\Database\Connection;
+use App\Domain\UserSubscription;
+use App\Infra\Connection;
 
 require_once 'vendor/autoload.php';
 
