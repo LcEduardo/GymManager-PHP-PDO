@@ -1,19 +1,31 @@
 <?php
 
 use App\Database\UserSubscription;
+use App\Database\Connection;
 
 require_once 'vendor/autoload.php';
 
-$idPlan = "SELECT id FROM plans WHERE name = 'Basic'";
+$pdo = Connection::getConnection();
 
+$sqlPlan = "SELECT id FROM plans WHERE name = 'Basic'";
+$stmt1 = $pdo->query($sqlPlan);
+$plan = $stmt1->fetch(PDO::FETCH_ASSOC);
 
+$sqlUser = "SELECT * FROM users WHERE id = 1 ;";
+$stmt = $pdo->query($sqlUser);
+//var_dump($stmt->fetch(PDO::FETCH_ASSOC));
 
-// criar um objeto user com os dados já cadastrados no database ;
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$sqlUser = "SELECT id, full_name, email, password, phone, "
+//var_dump($user['id']);
 
-$firstSubscription = new UserSubscription(
-    null,
-    1,
-    $idPlan,
+$subscription = new UserSubscription(
+    id: null,
+    user_id: $user['id'],
+    plan_id: $plan['id'],
+    start_date: '2026-02-01',
+    end_date: '2026-02-28',
+    payment_status: 'Pendente'
 );
+
+var_dump($subscription);
