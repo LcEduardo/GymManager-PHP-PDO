@@ -2,22 +2,19 @@
 
 use App\Domain\UserSubscription;
 use App\Infra\Connection;
+use App\Repository\PlanRepository;
 use App\Repository\SubscriptionRepository;
+use App\Repository\UserRepository;
 
 require_once 'vendor/autoload.php';
 
 $pdo = Connection::getConnection();
 
-$sqlPlan = "SELECT id FROM plans WHERE name = 'Basic'";
-$stmt1 = $pdo->query($sqlPlan);
-$plan = $stmt1->fetch(PDO::FETCH_ASSOC);
+$planRepository = new PlanRepository($pdo);
+$plan = $planRepository->searchPlan('Premium');
 
-$sqlUser = "SELECT * FROM users WHERE id = 1 ;";
-$stmt = $pdo->query($sqlUser);
-//var_dump($stmt->fetch(PDO::FETCH_ASSOC));
-
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+$userRepository = new UserRepository($pdo);
+$user = $userRepository->searchUser(2);
 //var_dump($user['id']);
 
 $subscription = new UserSubscription(

@@ -36,5 +36,10 @@ class UserRepository
             
     }
 
-    // Create a repository that search an user 
+    public function searchUser(int $id): mixed {
+        $sqlUser = "SELECT * FROM users WHERE id = $id;";
+        $stmt = $this->connection->query($sqlUser);
+
+        return  $stmt->fetch(PDO::FETCH_ASSOC);
+    } 
 }
