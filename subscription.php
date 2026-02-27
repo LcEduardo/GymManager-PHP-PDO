@@ -2,6 +2,7 @@
 
 use App\Domain\UserSubscription;
 use App\Infra\Connection;
+use App\Repository\SubscriptionRepository;
 
 require_once 'vendor/autoload.php';
 
@@ -28,4 +29,7 @@ $subscription = new UserSubscription(
     payment_status: 'Pendente'
 );
 
-var_dump($subscription);
+// var_dump($subscription);
+
+$subsRepository = new SubscriptionRepository($pdo);
+$subsRepository->createSubscription($subscription);

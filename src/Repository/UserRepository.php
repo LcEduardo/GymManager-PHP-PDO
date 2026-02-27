@@ -2,8 +2,6 @@
 
 namespace App\Repository;
 
-require_once 'vendor/autoload.php';
-
 use App\Domain\User;
 use PDO;
 use PDOException;
