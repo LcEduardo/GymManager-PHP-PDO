@@ -36,7 +36,7 @@ class UserRepository
             
     }
 
-    public function searchUser(int $id): mixed {
+    public function searchUser(int $id): mixed { //this is need good practice, use prepare
         $sqlUser = "SELECT * FROM users WHERE id = $id;";
         $stmt = $this->connection->query($sqlUser);
 
