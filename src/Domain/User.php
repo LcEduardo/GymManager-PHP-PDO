@@ -19,7 +19,7 @@ class User {
         string $password,
         string $date,
         string $phone,
-        string $status
+        string $status,
     ) {
         $this->id = $id;
         $this->full_name = $full_name;
@@ -64,5 +64,6 @@ class User {
     {
         return $this->status;
     }
+
 
 }

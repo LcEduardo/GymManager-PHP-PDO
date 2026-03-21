@@ -42,4 +42,25 @@ class UserRepository
 
         return  $stmt->fetch(PDO::FETCH_ASSOC);
     } 
+
+    public function formatUser($user){
+        return new User(
+            $user['id'],
+            $user['full_name'],
+            $user['email'], 
+            $user['password'],
+            $user['created_at'],
+            $user['phone'],
+            $user['status']
+        ); 
+    }
+
+    public function getAllUsers() {
+        $sql = "SELECT * FROM users;";
+        $stmt = $this->connection->query($sql);
+
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map([$this, 'formatUser'], $users);
+    }
 }
