@@ -40,7 +40,9 @@ class UserRepository
         $sqlUser = "SELECT * FROM users WHERE id = $id;";
         $stmt = $this->connection->query($sqlUser);
 
-        return  $stmt->fetch(PDO::FETCH_ASSOC);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $this->formatUser($user);
     } 
 
     public function formatUser($user){
