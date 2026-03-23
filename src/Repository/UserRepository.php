@@ -79,5 +79,12 @@ class UserRepository
         $stmt->execute();
 
     }
+
+    public function deleteUser(int $id): void{
+        $sql = "DELETE FROM users WHERE id=:id;";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+    }
     
 }

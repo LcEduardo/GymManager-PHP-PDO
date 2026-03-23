@@ -54,7 +54,7 @@ try {
             <td>
               <div class="actions">
                 <a href="edit.php?id=<?= $user->id() ?>"><button>Editar</button></a>
-                <a href="delete.php?id=<?= $user->id() ?>"><button>Excluir</button></a>
+                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;">Excluir</button></a>
               </div>
             </td>
           </tr>
@@ -62,7 +62,7 @@ try {
         </tbody>
       </table>
       <div class="actions">
-        <a href="cadastro.html"><button>Cadastrar usuário</button></a>
+        <a href="register-user.php"><button>Cadastrar usuário</button></a>
         <button>Baixar PDF</button>
       </div>
     </section>
