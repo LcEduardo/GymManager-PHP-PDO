@@ -66,4 +66,19 @@ class User {
     }
 
 
+    public function setFullName(string $full_name): void
+    {
+        $this->full_name = $full_name;
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+
+    public function setPhone(string $phone): void
+    {
+        $this->phone = $phone;
+    }
+    
 }

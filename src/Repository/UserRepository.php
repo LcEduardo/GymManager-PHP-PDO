@@ -65,4 +65,19 @@ class UserRepository
 
         return array_map([$this, 'formatUser'], $users);
     }
+
+    public function updateUser(User $user): void{
+        $sql = "UPDATE users SET  full_name = :full_name, email = :email, password = :password, phone = :phone, status = :status WHERE id = :id";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':full_name', $user->fullName(), PDO::PARAM_STR);
+        $stmt->bindValue(':email', $user->email(), PDO::PARAM_STR);
+        $stmt->bindValue(':password', $user->password(), PDO::PARAM_STR);
+        $stmt->bindValue(':phone', $user->phone(), PDO::PARAM_STR);
+        $stmt->bindValue(':status', $user->status(), PDO::PARAM_STR);
+        $stmt->bindValue(':id', $user->id(), PDO::PARAM_INT);
+
+        $stmt->execute();
+
+    }
+    
 }
