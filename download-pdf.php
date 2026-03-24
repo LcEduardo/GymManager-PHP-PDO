@@ -1,15 +1,15 @@
 <?php
 
-require_once 'vendor/autoload.php';
+require 'vendor/autoload.php';
 
-// reference the Dompdf namespace
+
 use Dompdf\Dompdf;
 
 // instantiate and use the dompdf class
 $dompdf = new Dompdf();
 
 ob_start();
-require "pdf-content.php";
+require "pdf.php";
 $html = ob_get_clean();
 
 $dompdf->loadHtml($html);

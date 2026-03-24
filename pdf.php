@@ -6,19 +6,11 @@ use App\Repository\UserRepository;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
+$users = $repository->getAllUsers();
 
-try {
-
-  $users = $repository->getAllUsers();
-
-}catch(PDOException $e){
-  echo $e->getMessage();
-}
 
 ?>
 
-<main>
-    <section>
       <table>
         <thead>
           <tr>
@@ -42,5 +34,3 @@ try {
           <?php endforeach; ?>
         </tbody>
       </table>
-    </section>
-  </main>
