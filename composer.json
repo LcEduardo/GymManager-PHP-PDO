@@ -5,6 +5,7 @@
         }
     },
     "require": {
-        "ext-pdo": "*"
+        "ext-pdo": "*",
+        "dompdf/dompdf": "^3.1"
     }
 }

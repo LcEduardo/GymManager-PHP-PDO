@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_POST['name'],
       $_POST['email'],
       password_hash($_POST['password'], PASSWORD_DEFAULT),
-      date('Y-m-d H:i:s'),
+      date('Y-m-d'),
       $_POST['phone'] ?? null,
       $_POST['status']
   );
