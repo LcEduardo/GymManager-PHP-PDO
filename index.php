@@ -10,6 +10,7 @@ $repository = new UserRepository($connection);
 try {
 
   $users = $repository->getAllUsers();
+  $usersPremium = $repository->countUsersByStatus('premium');
 
 }catch(PDOException $e){
   echo $e->getMessage();
@@ -30,6 +31,36 @@ try {
     <header>
     <h1>Academia</h1>
   </header>
+
+    <div id="dashboard" class="screen">
+ 
+    <div class="page-title">Dashboard</div>
+ 
+    <!-- Cards de estatísticas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Alunos Ativos</div>
+        <div class="stat-value">248</div>
+        <div class="stat-delta">▲ +12 este mês</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Receita Mensal</div>
+        <div class="stat-value">R$ 18.4K</div>
+        <div class="stat-delta">▲ +7% vs mês anterior</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Planos Premium</div>
+        <div class="stat-value"><?= $usersPremium ?></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Vencendo Hoje</div>
+        <div class="stat-value" style="color: var(--color-danger)">5</div>
+      </div>
+    </div>
+ 
+    <!-- Tabela de usuários -->
+    <div class="dashboard-table-section">
+
 
   <main>
     <section>
