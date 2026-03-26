@@ -52,85 +52,6 @@ main {
   padding: 28px 20px;
 }
 
-/* Centraliza conteúdo (usado em edit.php, cadastro, etc.) */
-main.page-center {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: calc(100vh - 70px);
-  padding-top: 48px;
-}
-
-/* ===== CARD ===== */
-.card {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  width: 100%;
-  max-width: 480px;
-  overflow: hidden;
-}
-
-.card-header {
-  background: var(--color-dark);
-  color: #fff;
-  padding: 1.1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.card-header h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.card-icon {
-  font-size: 1.2rem;
-}
-
-/* ===== FORM ===== */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 1.8rem 1.5rem;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.field-group label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.field-group input,
-.field-group select,
-.field-group textarea {
-  padding: 10px 12px;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: 0.97rem;
-  color: var(--color-text);
-  background: #fff;
-  transition: border-color var(--transition), box-shadow var(--transition);
-  outline: none;
-}
-
-.field-group input:focus,
-.field-group select:focus,
-.field-group textarea:focus {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-input);
-}
-
 /* ===== BOTÕES ===== */
 .btn {
   display: inline-block;
@@ -167,57 +88,6 @@ main.page-center {
 }
 .btn-danger:hover { background: var(--color-danger-h); }
 
-/* Ações dentro do formulário */
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 6px;
-}
-
-/* ===== TABELA (index.php) ===== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-}
-
-th {
-  background: var(--color-dark);
-  color: #fff;
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.95rem;
-}
-
-tr:last-child td {
-  border-bottom: none;
-}
-
-tr:hover td {
-  background: #f0f5fb;
-  transition: background var(--transition);
-}
-
-/* ===== ACTIONS (abaixo da tabela) ===== */
-.actions {
-  margin-top: 16px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 /* Compatibilidade com o button genérico legado */
 button {
   padding: 9px 14px;
@@ -230,60 +100,13 @@ button {
   font-weight: 600;
   transition: background var(--transition);
 }
-
+ 
 button:hover {
   background: var(--color-accent-h);
 }
 
-/* ===== MODAL (caso use futuramente) ===== */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(26, 37, 47, 0.55);
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
-
-.modal.open {
-  display: flex;
-}
-
-.modal-content {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  padding: 28px;
-  width: 100%;
-  max-width: 440px;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
 /* ===== RESPONSIVO ===== */
 @media (max-width: 540px) {
-  main.page-center {
-    padding-top: 24px;
-    align-items: flex-start;
-  }
-
-  .card {
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
   .btn {
     width: 100%;
     text-align: center;
