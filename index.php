@@ -3,14 +3,16 @@
 
 use App\Infra\Connection;
 use App\Repository\UserRepository;
+use App\Repository\SubscriptionRepository;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
+$SubriptionRepository = new SubscriptionRepository($connection);
 
 try {
 
   $users = $repository->getAllUsers();
-  $usersPremium = $repository->countUsersByStatus('premium');
+  $usersPremium = $SubriptionRepository->countPlan('Premium');
 
 }catch(PDOException $e){
   echo $e->getMessage();
@@ -85,8 +87,8 @@ try {
             <td><?= $user->status() ?></td>
             <td>
               <div class="actions">
-                <a href="edit.php?id=<?= $user->id() ?>"><button>Editar</button></a>
-                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;">Excluir</button></a>
+                <a href="edit.php?id=<?= $user->id() ?>"><button><img src="img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
+                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
               </div>
             </td>
           </tr>

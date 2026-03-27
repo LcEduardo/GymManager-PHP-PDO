@@ -157,3 +157,8 @@ tr:hover td {
   gap: 10px;
   flex-wrap: wrap;
 }
+
+.icon-trash {
+  width: 16px;   /* Ajuste aqui */
+  height: 16px;  /* Mantém proporção */
+}

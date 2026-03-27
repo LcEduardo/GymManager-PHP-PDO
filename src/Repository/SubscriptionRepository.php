@@ -31,4 +31,12 @@ class SubscriptionRepository
             echo $e->getMessage();
         }
     }
+
+    public function countPlan(string $plan): int {
+        $sql = "SELECT COUNT(*) FROM users_plans inner JOIN plans ON users_plans.plan_id = plans.id WHERE plans.name = :plan";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':plan', $plan, PDO::PARAM_STR);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }  
 }

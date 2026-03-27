@@ -85,14 +85,6 @@ class UserRepository
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-    }
-
-    public function countUsersByStatus(string $status): int {
-        $sql = "SELECT COUNT(*) FROM users WHERE status = :status";
-        $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
-        $stmt->execute();
-        return (int) $stmt->fetchColumn(); //como é apenas um valor, não precisa do fetchAll, só do fetchColumn
-    }       
+    }  
     
 }
