@@ -9,10 +9,32 @@ $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
 $SubriptionRepository = new SubscriptionRepository($connection);
 
+function getMonthRange($year = null, $month = null) {
+    $year = $year ?? date('Y');
+    $month = $month ?? date('m');
+
+    // Primeiro dia
+    $firstDay = date("Y-m-01", strtotime("$year-$month-01"));
+
+    // Último dia
+    $lastDay = date("Y-m-t", strtotime("$year-$month-01"));
+
+    return [$firstDay, $lastDay];
+}
+
+
 try {
 
   $users = $repository->getAllUsers();
+  $usersActive = $repository->countUsersByStatus('S');
   $usersPremium = $SubriptionRepository->countPlan('Premium');
+
+  list($firstDay, $lastDay) = getMonthRange();
+
+  $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
+
+  // var_dump($usersActivesThisMonth);
+  // exit();
 
 }catch(PDOException $e){
   echo $e->getMessage();
@@ -42,8 +64,8 @@ try {
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Alunos Ativos</div>
-        <div class="stat-value">248</div>
-        <div class="stat-delta">▲ +12 este mês</div>
+        <div class="stat-value"><?= $usersActive ?></div>
+        <div class="stat-delta"><?= $usersActivesThisMonth ?></div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Receita Mensal</div>
