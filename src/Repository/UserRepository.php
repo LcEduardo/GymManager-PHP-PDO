@@ -29,7 +29,13 @@ class UserRepository
             $stmt->bindValue(':status', $user->status(), PDO::PARAM_STR);
 
             $stmt->execute();
-            echo "New User Created";
+            
+            $id = $this->connection->lastInsertId();
+
+            // ATUALIZAR O OBJETO
+            $user->setId($id);
+
+            return true;
         } catch (PDOException $e) {
             echo $e->getMessage();
         }
@@ -58,7 +64,7 @@ class UserRepository
     }
 
     public function getAllUsers() {
-        $sql = "SELECT * FROM users;";
+        $sql = "SELECT *FROM users;";
         $stmt = $this->connection->query($sql);
 
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -85,6 +91,24 @@ class UserRepository
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
+    }  
+
+    public function countUsersByStatus(string $status): int {
+        $sql = "SELECT COUNT(*) FROM users WHERE status = :status;";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }  
+
+    // Precisa ter uma verificação para saber se entrou mais usuarios do que saiu no mês para indicar se teme +1 ou -1 
+    public function usersActivesThisMonth(string $lastDay, string $firstDay): string {
+        $sql = "SELECT COUNT(*) FROM users WHERE status = 'S' AND created_at BETWEEN :firstDay and :lastDay;"; // need a function to get first and last day of month
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':firstDay', $firstDay, PDO::PARAM_STR);
+        $stmt->bindValue(':lastDay', $lastDay, PDO::PARAM_STR);
+        $stmt->execute();
+        return " ▲ +{$stmt->fetchColumn()} este mês";
     }
     
 }

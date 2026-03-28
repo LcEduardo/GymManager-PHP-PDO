@@ -3,13 +3,38 @@
 
 use App\Infra\Connection;
 use App\Repository\UserRepository;
+use App\Repository\SubscriptionRepository;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
+$SubriptionRepository = new SubscriptionRepository($connection);
+
+function getMonthRange($year = null, $month = null) {
+    $year = $year ?? date('Y');
+    $month = $month ?? date('m');
+
+    // Primeiro dia
+    $firstDay = date("Y-m-01", strtotime("$year-$month-01"));
+
+    // Último dia
+    $lastDay = date("Y-m-t", strtotime("$year-$month-01"));
+
+    return [$firstDay, $lastDay];
+}
+
 
 try {
 
   $users = $repository->getAllUsers();
+  $usersActive = $repository->countUsersByStatus('S');
+  $usersPremium = $SubriptionRepository->countPlan('Premium');
+
+  list($firstDay, $lastDay) = getMonthRange();
+
+  $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
+
+  // var_dump($usersActivesThisMonth);
+  // exit();
 
 }catch(PDOException $e){
   echo $e->getMessage();
@@ -24,35 +49,12 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <header>
     <h1>Academia</h1>
   </header>
-
-  <div id="dashboard" class="screen">
-  <div class="page-title">Dashboard</div>
- 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">Alunos Ativos</div>
-      <div class="stat-value">248</div>
-      <div class="stat-delta">▲ +12 este mês</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Receita Mensal</div>
-      <div class="stat-value">R$ 18.4K</div>
-      <div class="stat-delta">▲ +7% vs mês anterior</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Planos Premium</div>
-      <div class="stat-value">93</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Vencendo Hoje</div>
-      <div class="stat-value" style="color:var(--danger)">5</div>
-    </div>
-  </div>
 
   <main>
     <section>
@@ -77,8 +79,8 @@ try {
             <td><?= $user->status() ?></td>
             <td>
               <div class="actions">
-                <a href="edit.php?id=<?= $user->id() ?>"><button>Editar</button></a>
-                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;">Excluir</button></a>
+                <a href="edit.php?id=<?= $user->id() ?>"><button><img src="img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
+                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
               </div>
             </td>
           </tr>

@@ -5,9 +5,12 @@ require 'vendor/autoload.php';
 use App\Domain\User;
 use App\Infra\Connection;
 use App\Repository\UserRepository;
+use App\Repository\SubscriptionRepository;
+use App\Domain\UserSubscription;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
+$subscriptionRepository = new SubscriptionRepository($connection);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -18,10 +21,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       password_hash($_POST['password'], PASSWORD_DEFAULT),
       date('Y-m-d'),
       $_POST['phone'] ?? null,
-      $_POST['status']
+      'S'
+  );
+
+  $subscription = new UserSubscription(
+    null,
+    null, 
+    $_POST['plan'] === 'Premium' ? 2 : 1, 
+    date('Y-m-d'),
+    date('Y-m-d', strtotime('+1 month')),
+    'pending' 
   );
 
   $repository->createUser($user);
+
+  $subscription->setUserId($user->id());
+
+  $subscriptionRepository->createSubscription($subscription);
+
   header('Location:index.php');
 
 }
@@ -34,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro de Usuário – Academia</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/form.css">
 </head>
 <body>
 
@@ -77,10 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="field-group">
-          <label for="status">Plano</label>
-          <select id="status" name="status">
-            <option value="basico">Plano Básico</option>
-            <option value="premium">Plano Premium</option>
+          <label for="plan">Plano</label>
+          <select id="plan" name="plan">
+            <option value="Basic">Plano Básico</option>
+            <option value="Premium">Plano Premium</option>
           </select>
         </div>
 

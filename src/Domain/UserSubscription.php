@@ -5,13 +5,13 @@ namespace App\Domain;
 class UserSubscription 
 {
     private ?int $id;
-    private int $user_id;
+    private ?int $user_id;
     private int $plan_id;
     private string $start_date;
     private string $end_date;
     private string $payment_status;
     
-    public function __construct(?int $id, int $user_id, int $plan_id, string $start_date, string $end_date, string $payment_status)
+    public function __construct(?int $id, ?int $user_id, int $plan_id, string $start_date, string $end_date, string $payment_status)
     {
         $this->id = $id;
         $this->user_id = $user_id;
@@ -26,12 +26,12 @@ class UserSubscription
         return $this->id;
     }
 
-    public function getUserId(): int
+    public function getUserId(): ?int
     {
         return $this->user_id;
     }
 
-    public function getPlanId(): int
+    public function getPlanId(): ?int
     {
         return $this->plan_id;
     }
@@ -56,4 +56,7 @@ class UserSubscription
     public function setPaymentStatus($payment_status): void {
         $this->payment_status = $payment_status;
     }
+    public function setUserId($user_id): void {
+        $this->user_id = $user_id;
+    }   
 }

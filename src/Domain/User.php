@@ -80,5 +80,10 @@ class User {
     {
         $this->phone = $phone;
     }
-    
+
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
+    }
+
 }
