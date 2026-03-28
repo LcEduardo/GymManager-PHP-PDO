@@ -30,6 +30,30 @@ try {
     <h1>Academia</h1>
   </header>
 
+  <div id="dashboard" class="screen">
+  <div class="page-title">Dashboard</div>
+ 
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Alunos Ativos</div>
+      <div class="stat-value">248</div>
+      <div class="stat-delta">▲ +12 este mês</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Receita Mensal</div>
+      <div class="stat-value">R$ 18.4K</div>
+      <div class="stat-delta">▲ +7% vs mês anterior</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Planos Premium</div>
+      <div class="stat-value">93</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Vencendo Hoje</div>
+      <div class="stat-value" style="color:var(--danger)">5</div>
+    </div>
+  </div>
+
   <main>
     <section>
       <table>
