@@ -59,4 +59,9 @@ class UserSubscription
     public function setUserId($user_id): void {
         $this->user_id = $user_id;
     }   
+    public function setPlanId($plan_id): void {
+        $this->plan_id = $plan_id;
+    }
+
+    
 }

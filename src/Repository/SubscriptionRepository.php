@@ -39,4 +39,20 @@ class SubscriptionRepository
         $stmt->execute();
         return (int) $stmt->fetchColumn();
     }  
+
+    public function findByUserId(int $userId): ?array {
+        $sql = "SELECT * FROM users_plans WHERE user_id = :user_id LIMIT 1";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+    public function updatePlan(int $userId, int $planId): void {
+        $sql = "UPDATE users_plans SET plan_id = :plan_id WHERE user_id = :user_id";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':plan_id', $planId, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+    
 }

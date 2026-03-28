@@ -4,11 +4,15 @@ require 'vendor/autoload.php';
 
 use App\Infra\Connection;
 use App\Repository\UserRepository;
+use App\Repository\SubscriptionRepository;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
+$subscriptionRepository = new SubscriptionRepository($connection);
 
 $user = $repository->searchUser($_GET['id']);
+$subscription = $subscriptionRepository->findByUserId($user->id());
+$currentPlanId = $subscription['plan_id'] ?? null;
 
 ?>
 
@@ -34,10 +38,8 @@ $user = $repository->searchUser($_GET['id']);
         <h2>Editar Usuário</h2>
       </div>
 
-      <!-- action e method serão preenchidos pelo PHP -->
       <form class="form" action="update.php" method="POST">
 
-        <!-- id oculto para identificar o registro -->
         <input type="hidden" name="id" value="<?= $user->id() ?? '' ?>">
 
         <div class="field-group">
@@ -73,11 +75,10 @@ $user = $repository->searchUser($_GET['id']);
         </div>
 
         <div class="field-group">
-          <label for="status">Plano / Status</label>
-          <select id="status" name="status">
-            <option value="basico"   <?= ($user->status() ?? '') === 'basico'   ? 'selected' : '' ?>>Plano Básico</option>
-            <option value="premium"  <?= ($user->status() ?? '') === 'premium'  ? 'selected' : '' ?>>Plano Premium</option>
-            <option value="inativo"  <?= ($user->status() ?? '') === 'inativo'  ? 'selected' : '' ?>>Inativo</option>
+          <label for="plan">Plano</label>
+          <select id="plan" name="plan_id">
+              <option value="1" <?= $currentPlanId === 1 ? 'selected' : '' ?>>Plano Básico</option>
+              <option value="2" <?= $currentPlanId === 2 ? 'selected' : '' ?>>Plano Premium</option>
           </select>
         </div>
 
