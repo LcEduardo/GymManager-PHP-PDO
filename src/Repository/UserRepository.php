@@ -42,9 +42,11 @@ class UserRepository
             
     }
 
-    public function searchUser(int $id): mixed { //this is need good practice, use prepare
-        $sqlUser = "SELECT * FROM users WHERE id = $id;";
-        $stmt = $this->connection->query($sqlUser);
+    public function searchUser(int $id): mixed { 
+        $sql = "SELECT * FROM users WHERE id = :id";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

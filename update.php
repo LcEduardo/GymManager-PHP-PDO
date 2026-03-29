@@ -19,9 +19,6 @@ if (isset($_POST['id'], $_POST['name'], $_POST['email'], $_POST['phone'])) {
     $userRepository->updateUser($user);
     $subscriptionRepository->updatePlan((int)$_POST['id'], (int)$_POST['plan_id']);
 
-
-    $userRepository->updateUser($user);
-
     header('Location: index.php');
 }
 ?>

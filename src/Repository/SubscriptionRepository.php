@@ -26,9 +26,9 @@ class SubscriptionRepository
             $stmt->bindValue(':payment_status', $subscription->getPaymentStatus(), PDO::PARAM_STR);
             
             $stmt->execute();
-            echo "Create Subscription!";
+            return true;
         }catch(PDOException $e){
-            echo $e->getMessage();
+            return false;
         }
     }
 

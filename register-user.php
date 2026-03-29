@@ -7,12 +7,17 @@ use App\Infra\Connection;
 use App\Repository\UserRepository;
 use App\Repository\SubscriptionRepository;
 use App\Domain\UserSubscription;
+use App\Repository\PlanRepository;
 
 $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
 $subscriptionRepository = new SubscriptionRepository($connection);
+$planRepository = new PlanRepository($connection);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+  $planName = $_POST['plan'];
+  $plan = $planRepository->searchPlan($planName);
 
   $user = new User(
       null,
@@ -27,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $subscription = new UserSubscription(
     null,
     null, 
-    $_POST['plan'] === 'Premium' ? 2 : 1, 
+    $plan['id'], 
     date('Y-m-d'),
     date('Y-m-d', strtotime('+1 month')),
     'pending' 
@@ -39,7 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $subscriptionRepository->createSubscription($subscription);
 
-  header('Location:index.php');
+  $result = $subscriptionRepository->createSubscription($subscription);
+
+  if ($result) {
+      header('Location: index.php');
+  } else {
+      echo "Something went wrong. Please try again."; 
+  }
 
 }
 ?>
