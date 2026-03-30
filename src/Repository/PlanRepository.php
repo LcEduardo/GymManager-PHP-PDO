@@ -13,7 +13,7 @@ class PlanRepository
     }
 
     public function searchPlan(string $type): mixed {
-        $sqlPlan = "SELECT id FROM plans WHERE name = ':name;";
+        $sqlPlan = "SELECT id FROM plans WHERE name = :name;";
         $stmt = $this->connection->prepare($sqlPlan);
         $stmt->bindValue(':name', $type, PDO::PARAM_STR);
         $stmt->execute();

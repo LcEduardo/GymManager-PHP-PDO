@@ -47,12 +47,29 @@ class SubscriptionRepository
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+
     public function updatePlan(int $userId, int $planId): void {
         $sql = "UPDATE users_plans SET plan_id = :plan_id WHERE user_id = :user_id";
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':plan_id', $planId, PDO::PARAM_INT);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
         $stmt->execute();
+    }
+
+    public function getMonthlyRevenue(string $firstDay, string $lastDay): float {
+        $sql = "SELECT SUM(plans.price)
+                FROM users_plans
+                INNER JOIN users  ON users_plans.user_id = users.id
+                INNER JOIN plans  ON users_plans.plan_id = plans.id
+                WHERE users.created_at BETWEEN :firstDay AND :lastDay";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':firstDay', $firstDay, PDO::PARAM_STR);
+        $stmt->bindValue(':lastDay',  $lastDay,  PDO::PARAM_STR);
+        $stmt->execute();
+
+        return (float) $stmt->fetchColumn();
+
     }
     
 }

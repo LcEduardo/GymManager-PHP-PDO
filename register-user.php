@@ -42,8 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $subscription->setUserId($user->id());
 
-    $subscriptionRepository->createSubscription($subscription);
-
     $result = $subscriptionRepository->createSubscription($subscription);
 
     if ($result) {

@@ -33,6 +33,8 @@ try {
 
   $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
 
+  $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
+
   // var_dump($usersActivesThisMonth);
   // exit();
 
@@ -69,7 +71,7 @@ try {
       </div>
       <div class="stat-card">
         <div class="stat-label">Receita Mensal</div>
-        <div class="stat-value">R$ 18.4K</div>
+        <div class="stat-value">R$ <?= number_format($monthlyRevenue, 2, ',', '.') ?></div>
         <div class="stat-delta">▲ +7% vs mês anterior</div>
       </div>
       <div class="stat-card">
