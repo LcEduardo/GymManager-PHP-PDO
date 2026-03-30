@@ -38,21 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'pending' 
   );
 
-  $repository->createUser($user);
+    $repository->createUser($user);
 
-  $subscription->setUserId($user->id());
+    $subscription->setUserId($user->id());
 
-  $subscriptionRepository->createSubscription($subscription);
+    $subscriptionRepository->createSubscription($subscription);
 
-  $result = $subscriptionRepository->createSubscription($subscription);
+    $result = $subscriptionRepository->createSubscription($subscription);
 
-  if ($result) {
-      header('Location: index.php');
-  } else {
-      echo "Something went wrong. Please try again."; 
+    if ($result) {
+        header('Location: index.php');
+    } else {
+        echo "Something went wrong. Please try again."; 
+    }
+
   }
-
-}
 ?>
 
 <!DOCTYPE html>
