@@ -89,7 +89,14 @@ class UserRepository
     }
 
     public function deleteUser(int $id): void{
-        $sql = "DELETE FROM users WHERE id=:id;";
+
+        $sqlPlan = "DELETE FROM users_plans WHERE user_id = :id;";
+        $stmtPlan = $this->connection->prepare($sqlPlan);
+        $stmtPlan->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmtPlan->execute();
+
+
+        $sql = "DELETE FROM users WHERE id = :id;";
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
