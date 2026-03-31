@@ -59,9 +59,9 @@ class SubscriptionRepository
     public function getMonthlyRevenue(string $firstDay, string $lastDay): float {
         $sql = "SELECT SUM(plans.price)
                 FROM users_plans
-                INNER JOIN users  ON users_plans.user_id = users.id
-                INNER JOIN plans  ON users_plans.plan_id = plans.id
-                WHERE users.created_at BETWEEN :firstDay AND :lastDay";
+                INNER JOIN plans ON users_plans.plan_id = plans.id
+                WHERE users_plans.payment_status = 'paid'
+                AND users_plans.start_date BETWEEN :firstDay AND :lastDay";
 
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':firstDay', $firstDay, PDO::PARAM_STR);
