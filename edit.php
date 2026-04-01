@@ -10,7 +10,7 @@ $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
 $subscriptionRepository = new SubscriptionRepository($connection);
 
-$user = $repository->searchUser($_GET['id']);
+$user = $repository->searchUser(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
 $subscription = $subscriptionRepository->findByUserId($user->id());
 $currentPlanId = $subscription['plan_id'] ?? null;
 

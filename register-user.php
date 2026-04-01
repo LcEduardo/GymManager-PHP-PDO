@@ -16,16 +16,21 @@ $planRepository = new PlanRepository($connection);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-  $planName = $_POST['plan'];
+  $name     = filter_input(INPUT_POST, 'name',     FILTER_SANITIZE_SPECIAL_CHARS);
+  $email    = filter_input(INPUT_POST, 'email',     FILTER_VALIDATE_EMAIL);
+  $password = filter_input(INPUT_POST, 'password',  FILTER_SANITIZE_SPECIAL_CHARS);
+  $phone    = filter_input(INPUT_POST, 'phone',     FILTER_SANITIZE_SPECIAL_CHARS);
+  $planName = filter_input(INPUT_POST, 'plan',      FILTER_SANITIZE_SPECIAL_CHARS);
+
   $plan = $planRepository->searchPlan($planName);
 
   $user = new User(
       null,
-      $_POST['name'],
-      $_POST['email'],
-      password_hash($_POST['password'], PASSWORD_DEFAULT),
+      $name,
+      $email,
+      password_hash($password, PASSWORD_DEFAULT),
       date('Y-m-d'),
-      $_POST['phone'] ?? null,
+      $phone ?? null,
       'S'
   );
 

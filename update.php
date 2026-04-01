@@ -10,15 +10,19 @@ $connection = Connection::getConnection();
 $userRepository = new UserRepository($connection);
 $subscriptionRepository = new SubscriptionRepository($connection);
 
-if (isset($_POST['id'], $_POST['name'], $_POST['email'], $_POST['phone'])) {
-    $user = $userRepository->searchUser((int)$_POST['id']);
-    $user->setFullName($_POST['name']);
-    $user->setEmail($_POST['email']);
-    $user->setPhone($_POST['phone']);
+$id   = filter_input(INPUT_POST, 'id',    FILTER_VALIDATE_INT);
+$name  = filter_input(INPUT_POST, 'name',  FILTER_SANITIZE_SPECIAL_CHARS);
+$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+$phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_SPECIAL_CHARS);
+
+if (isset($id, $name, $email, $phone)) {
+    $user = $userRepository->searchUser($id);
+    $user->setFullName($name);
+    $user->setEmail($email);
+    $user->setPhone($phone);
 
     $userRepository->updateUser($user);
-    $subscriptionRepository->updatePlan((int)$_POST['id'], (int)$_POST['plan_id']);
+    $subscriptionRepository->updatePlan($id, filter_input(INPUT_POST, 'plan_id', FILTER_VALIDATE_INT));
 
     header('Location: index.php');
 }
-?>
