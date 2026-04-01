@@ -71,5 +71,18 @@ class SubscriptionRepository
         return (float) $stmt->fetchColumn();
 
     }
+
+    public function countExpiringToday(): int {
+        $sql = "SELECT COUNT(*) 
+                FROM users_plans 
+                WHERE end_date = :today 
+                AND payment_status != 'paid'";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':today', date('Y-m-d'), PDO::PARAM_STR);
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
+    }
     
 }

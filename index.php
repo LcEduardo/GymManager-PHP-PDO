@@ -35,8 +35,7 @@ try {
 
   $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
 
-  // var_dump($usersActivesThisMonth);
-  // exit();
+  $expiringToday = $SubriptionRepository->countExpiringToday();
 
 }catch(PDOException $e){
   echo $e->getMessage();
@@ -80,7 +79,7 @@ try {
       </div>
       <div class="stat-card">
         <div class="stat-label">Vencendo Hoje</div>
-        <div class="stat-value" style="color: var(--color-danger)">5</div>
+        <div class="stat-value" style="color: var(--color-danger)"><?= $expiringToday ?></div>
       </div>
     </div>
  
