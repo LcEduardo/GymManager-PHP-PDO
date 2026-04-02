@@ -1,128 +1,22 @@
 <?php
-  require 'vendor/autoload.php';
+ 
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-use App\Infra\Connection;
-use App\Repository\UserRepository;
-use App\Repository\SubscriptionRepository;
-
-$connection = Connection::getConnection();
-$repository = new UserRepository($connection);
-$SubriptionRepository = new SubscriptionRepository($connection);
-
-function getMonthRange($year = null, $month = null) {
-    $year = $year ?? date('Y');
-    $month = $month ?? date('m');
-
-    // Primeiro dia
-    $firstDay = date("Y-m-01", strtotime("$year-$month-01"));
-
-    // Último dia
-    $lastDay = date("Y-m-t", strtotime("$year-$month-01"));
-
-    return [$firstDay, $lastDay];
+$uri = rtrim($uri, '/') ?: '/';
+ 
+$routes = [
+    '/'          => 'adm.php',
+    '/adm'       => 'adm.php',
+    '/register'  => 'register-user.php',
+    '/edit'      => 'edit.php',
+    '/update'    => 'update.php',
+    '/delete'    => 'delete.php',
+    '/download'  => 'download-pdf.php',
+];
+ 
+if (array_key_exists($uri, $routes)) {
+    require $routes[$uri];
+} else {
+    http_response_code(404);
+    echo "<h1>404 – Página não encontrada</h1>";
 }
-
-
-try {
-
-  $users = $repository->getAllUsers();
-  $usersActive = $repository->countUsersByStatus('S');
-  $usersPremium = $SubriptionRepository->countPlan('Premium');
-
-  list($firstDay, $lastDay) = getMonthRange();
-
-  $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
-
-  $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
-
-  $expiringToday = $SubriptionRepository->countExpiringToday();
-
-}catch(PDOException $e){
-  echo $e->getMessage();
-}
-
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Management</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/index.css">
-</head>
-<body>
-    <header>
-    <h1>Academia</h1>
-  </header>
-
-    <div id="dashboard" class="screen">
- 
-    <div class="page-title">Dashboard</div>
- 
-    <!-- Cards de estatísticas -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Alunos Ativos</div>
-        <div class="stat-value"><?= $usersActive ?></div>
-        <div class="stat-delta"><?= $usersActivesThisMonth ?></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Receita Mensal</div>
-        <div class="stat-value">R$ <?= number_format($monthlyRevenue, 2, ',', '.') ?></div>
-        <div class="stat-delta">▲ +7% vs mês anterior</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Planos Premium</div>
-        <div class="stat-value"><?= $usersPremium ?></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Vencendo Hoje</div>
-        <div class="stat-value" style="color: var(--color-danger)"><?= $expiringToday ?></div>
-      </div>
-    </div>
- 
-    <!-- Tabela de usuários -->
-    <div class="dashboard-table-section">
-
-
-  <main>
-    <section>
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach($users as $user):  ?>
-          <tr>
-            <td><?= $user->date() ?></td>
-            <td><?= $user->fullName() ?></td>
-            <td><?= $user->email() ?></td>
-            <td><?= $user->phone() ?></td>
-            <td><?= $user->status() ?></td>
-            <td>
-              <div class="actions">
-                <a href="edit.php?id=<?= $user->id() ?>"><button><img src="img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
-                <a href="delete.php?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
-              </div>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-      <div class="actions">
-        <a href="register-user.php"><button>Cadastrar usuário</button></a>
-        <a href="download-pdf.php"><button>Baixar PDF</button></a>
-      </div>
-    </section>
-  </main>
-</body>
-</html>

@@ -14,6 +14,7 @@ $repository = new UserRepository($connection);
 $subscriptionRepository = new SubscriptionRepository($connection);
 $planRepository = new PlanRepository($connection);
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $name     = filter_input(INPUT_POST, 'name',     FILTER_SANITIZE_SPECIAL_CHARS);
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $subscriptionRepository->createSubscription($subscription);
 
     if ($result) {
-        header('Location: index.php');
+        header('Location: /');
     } else {
         echo "Something went wrong. Please try again."; 
     }
@@ -117,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="form-actions">
-          <a href="index.php" class="btn btn-secondary">Cancelar</a>
+          <a href="/" class="btn btn-secondary">Cancelar</a>
           <button type="submit" class="btn btn-primary">Cadastrar</button>
         </div>
 

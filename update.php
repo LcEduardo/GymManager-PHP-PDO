@@ -24,5 +24,5 @@ if (isset($id, $name, $email, $phone)) {
     $userRepository->updateUser($user);
     $subscriptionRepository->updatePlan($id, filter_input(INPUT_POST, 'plan_id', FILTER_VALIDATE_INT));
 
-    header('Location: index.php');
+    header('Location: /');
 }

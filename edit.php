@@ -38,7 +38,7 @@ $currentPlanId = $subscription['plan_id'] ?? null;
         <h2>Editar Usuário</h2>
       </div>
 
-      <form class="form" action="update.php" method="POST">
+      <form class="form" action="/update" method="POST">
 
         <input type="hidden" name="id" value="<?= $user->id() ?? '' ?>">
 
@@ -83,7 +83,7 @@ $currentPlanId = $subscription['plan_id'] ?? null;
         </div>
 
         <div class="form-actions">
-          <a href="index.php" class="btn btn-secondary">Cancelar</a>
+          <a href="/" class="btn btn-secondary">Cancelar</a>
           <button type="submit" class="btn btn-primary">Salvar alterações</button>
         </div>
 
