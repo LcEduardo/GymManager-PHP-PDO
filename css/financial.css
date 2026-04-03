@@ -1,0 +1,117 @@
+/* ===== FINANCEIRO – Tela de assinaturas ===== */
+
+/* ===== FILTROS ===== */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 7px 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition);
+}
+
+.filter-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  transform: none;
+}
+
+.filter-btn.active {
+  background: var(--color-dark);
+  border-color: var(--color-dark);
+  color: #fff;
+}
+
+.filter-btn.active-pago {
+  background: #1a6b35;
+  border-color: #1a6b35;
+  color: #fff;
+}
+
+.filter-btn.active-pendente {
+  background: #856404;
+  border-color: #856404;
+  color: #fff;
+}
+
+.filter-btn.active-vencido {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+/* ===== BADGES DE STATUS ===== */
+.badge-pago     { background: #d4edda; color: #1a6b35; }
+.badge-pendente { background: #fff3cd; color: #856404; }
+.badge-vencido  { background: #f8d7da; color: #842029; }
+
+/* ===== CONTADOR DE RESULTADOS ===== */
+.results-count {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.results-count span {
+  color: var(--color-dark);
+  font-weight: 700;
+}
+
+/* ===== ESTADO VAZIO ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-muted);
+}
+
+.empty-state p {
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+/* ===== COLUNA DE VENCIMENTO ===== */
+.date-vencido {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.date-hoje {
+  color: #856404;
+  font-weight: 600;
+}
+
+/* ===== BOTÃO MARCAR COMO PAGO ===== */
+.btn-pagar {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 768px) {
+  .filter-bar {
+    gap: 6px;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+  }
+
+  td, th {
+    font-size: 0.85rem;
+    padding: 9px 10px;
+  }
+}

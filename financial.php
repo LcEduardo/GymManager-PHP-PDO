@@ -1,0 +1,139 @@
+<?php
+
+require 'vendor/autoload.php';
+
+use App\Infra\Connection;
+use App\Repository\SubscriptionRepository;
+
+$connection = Connection::getConnection();
+$subscriptionRepository = new SubscriptionRepository($connection);
+
+$filtro = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'todos';
+$filtrosValidos = ['todos', 'paid', 'pending', 'vencido'];
+
+if (!in_array($filtro, $filtrosValidos)) {
+    $filtro = 'todos';
+}
+
+$assinaturas = $subscriptionRepository->getAllSubscriptionsWithUsers($filtro);
+
+$labelMap = [
+    'todos'   => 'Todos',
+    'paid'    => 'Pago',
+    'pending' => 'Pendente',
+    'vencido' => 'Vencido',
+];
+
+$badgeMap = [
+    'paid'    => ['classe' => 'badge badge-pago',     'label' => 'Pago'],
+    'pending' => ['classe' => 'badge badge-pendente', 'label' => 'Pendente'],
+    'vencido' => ['classe' => 'badge badge-vencido',  'label' => 'Vencido'],
+];
+
+$activeBtnMap = [
+    'todos'   => 'active',
+    'paid'    => 'active-pago',
+    'pending' => 'active-pendente',
+    'vencido' => 'active-vencido',
+];
+
+$hoje = date('Y-m-d');
+
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financeiro – Academia</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/financial.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+  <header>
+    <h1>Academia</h1>
+  </header>
+
+  <div class="screen">
+
+    <div class="page-title">Financeiro</div>
+    
+    <div class="filter-bar">
+      <?php foreach ($labelMap as $valor => $label): ?>
+        <a href="/financial?status=<?= $valor ?>">
+          <button class="filter-btn <?= $filtro === $valor ? $activeBtnMap[$valor] : '' ?>">
+            <?= $label ?>
+          </button>
+        </a>
+      <?php endforeach; ?>
+    </div>
+
+    <!-- Contador de resultados -->
+    <div class="results-count">
+      Exibindo <span><?= count($assinaturas) ?></span> resultado<?= count($assinaturas) !== 1 ? 's' : '' ?>
+    </div>
+
+    <!-- Tabela -->
+    <div class="dashboard-table-section">
+      <table>
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>Plano</th>
+            <th>Início</th>
+            <th>Vencimento</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($assinaturas)): ?>
+            <tr>
+              <td colspan="5">
+                <div class="empty-state">
+                  <strong>Nenhuma assinatura encontrada</strong>
+                  <p>Não há registros para o filtro "<?= htmlspecialchars($labelMap[$filtro]) ?>".</p>
+                </div>
+              </td>
+            </tr>
+          <?php else: ?>
+            <?php foreach ($assinaturas as $row): ?>
+              <?php
+                // Define o status real: se end_date passou e não está pago → vencido
+                $status = $row['payment_status'];
+                if ($status !== 'paid' && $row['end_date'] < $hoje) {
+                    $status = 'vencido';
+                }
+
+                $badge = $badgeMap[$status] ?? ['classe' => 'badge', 'label' => $status];
+
+                // Classe especial na data de vencimento
+                $dateClass = '';
+                if ($row['end_date'] < $hoje && $status !== 'paid') {
+                    $dateClass = 'date-vencido';
+                } elseif ($row['end_date'] === $hoje) {
+                    $dateClass = 'date-hoje';
+                }
+              ?>
+              <tr>
+                <td><?= htmlspecialchars($row['full_name']) ?></td>
+                <td><?= htmlspecialchars($row['plan_name']) ?></td>
+                <td><?= htmlspecialchars($row['start_date']) ?></td>
+                <td class="<?= $dateClass ?>"><?= htmlspecialchars($row['end_date']) ?></td>
+                <td><span class="<?= $badge['classe'] ?>"><?= $badge['label'] ?></span></td>
+              </tr>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </tbody>
+      </table>
+
+      <div class="table-footer">
+        <a href="/" class="btn btn-secondary">← Voltar ao painel</a>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

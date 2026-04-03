@@ -12,7 +12,8 @@ $routes = [
     '/update'    => 'update.php',
     '/delete'    => 'delete.php',
     '/download'  => 'download-pdf.php',
-];
+    '/financial' => 'financial.php'
+    ];
  
 if (array_key_exists($uri, $routes)) {
     require $routes[$uri];

@@ -122,6 +122,7 @@ try {
       <div class="actions">
         <a href="/register"><button>Cadastrar usuário</button></a>
         <a href="/download"><button>Baixar PDF</button></a>
+        <a href="/financial"><button style="background-color: var(--color-success);">Financeiro</button></a>
       </div>
     </section>
   </main>

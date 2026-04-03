@@ -84,5 +84,43 @@ class SubscriptionRepository
 
         return (int) $stmt->fetchColumn();
     }
+
+    public function getAllSubscriptionsWithUsers(string $filtro = 'todos'): array {
+        $hoje = date('Y-m-d');
+    
+        $sql = "SELECT 
+                    users.full_name,
+                    plans.name        AS plan_name,
+                    users_plans.start_date,
+                    users_plans.end_date,
+                    users_plans.payment_status
+                FROM users_plans
+                INNER JOIN users ON users_plans.user_id = users.id
+                INNER JOIN plans ON users_plans.plan_id = plans.id";
+    
+        if ($filtro === 'paid') {
+            $sql .= " WHERE users_plans.payment_status = 'paid'";
+        } elseif ($filtro === 'pending') {
+
+            $sql .= " WHERE users_plans.payment_status != 'paid'
+                        AND users_plans.end_date >= :hoje";
+        } elseif ($filtro === 'vencido') {
+
+            $sql .= " WHERE users_plans.payment_status != 'paid'
+                        AND users_plans.end_date < :hoje";
+        }
+    
+        $sql .= " ORDER BY users_plans.end_date ASC";
+    
+        $stmt = $this->connection->prepare($sql);
+    
+        if (in_array($filtro, ['pending', 'vencido'])) {
+            $stmt->bindValue(':hoje', $hoje, PDO::PARAM_STR);
+        }
+    
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
 }
