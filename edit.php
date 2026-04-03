@@ -65,6 +65,15 @@ $currentPlanId = $subscription['plan_id'] ?? null;
         </div>
 
         <div class="field-group">
+          <label for="birthdate">Data de nascimento</label>
+          <input
+            type="date"
+            id="birthdate"
+            name="birthdate"
+            value="<?= htmlspecialchars($user->birthDate() ?? '') ?>">
+        </div>
+
+        <div class="field-group">
           <label for="phone">Telefone</label>
           <input
             type="text"

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     email       VARCHAR(150) UNIQUE NOT NULL,
     password    VARCHAR(255)        NOT NULL,
     phone       VARCHAR(20),
+    birth_date  DATE,
     created_at  DATE                NOT NULL DEFAULT CURRENT_DATE,
     status      CHAR(1)             NOT NULL DEFAULT 'S'
 );

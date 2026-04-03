@@ -90,7 +90,7 @@ $users = $repository->getAllUsers();
   <table>
     <thead>
       <tr>
-        <th>Data</th>
+        <th>Data de cadastro</th>
         <th>Nome</th>
         <th>Email</th>
         <th>Telefone</th>
@@ -100,7 +100,7 @@ $users = $repository->getAllUsers();
     <tbody>
       <?php foreach($users as $user): ?>
       <tr>
-        <td><?= $user->date() ?></td>
+        <td><?= $user->createdAt() ?></td>
         <td><?= $user->fullName() ?></td>
         <td><?= $user->email() ?></td>
         <td><?= $user->phone() ?></td>

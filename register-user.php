@@ -14,35 +14,35 @@ $repository = new UserRepository($connection);
 $subscriptionRepository = new SubscriptionRepository($connection);
 $planRepository = new PlanRepository($connection);
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
+    $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+    $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_SPECIAL_CHARS);
+    $birthDate = filter_input(INPUT_POST, 'birthdate', FILTER_DEFAULT);
+    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_SPECIAL_CHARS);
+    $planName = filter_input(INPUT_POST, 'plan', FILTER_SANITIZE_SPECIAL_CHARS);
 
-  $name     = filter_input(INPUT_POST, 'name',     FILTER_SANITIZE_SPECIAL_CHARS);
-  $email    = filter_input(INPUT_POST, 'email',     FILTER_VALIDATE_EMAIL);
-  $password = filter_input(INPUT_POST, 'password',  FILTER_SANITIZE_SPECIAL_CHARS);
-  $phone    = filter_input(INPUT_POST, 'phone',     FILTER_SANITIZE_SPECIAL_CHARS);
-  $planName = filter_input(INPUT_POST, 'plan',      FILTER_SANITIZE_SPECIAL_CHARS);
+    $plan = $planRepository->searchPlan($planName);
 
-  $plan = $planRepository->searchPlan($planName);
+    $user = new User(
+        null,
+        $name,
+        $email,
+        password_hash($password, PASSWORD_DEFAULT),
+        date('Y-m-d'),
+        $birthDate ?: null,
+        $phone ?: null,
+        'S'
+    );
 
-  $user = new User(
-      null,
-      $name,
-      $email,
-      password_hash($password, PASSWORD_DEFAULT),
-      date('Y-m-d'),
-      $phone ?? null,
-      'S'
-  );
-
-  $subscription = new UserSubscription(
-    null,
-    null, 
-    $plan['id'], 
-    date('Y-m-d'),
-    date('Y-m-d', strtotime('+1 month')),
-    'pending' 
-  );
+    $subscription = new UserSubscription(
+        null,
+        null,
+        $plan['id'],
+        date('Y-m-d'),
+        date('Y-m-d', strtotime('+1 month')),
+        'pending'
+    );
 
     $repository->createUser($user);
 
@@ -53,10 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result) {
         header('Location: /');
     } else {
-        echo "Something went wrong. Please try again."; 
+        echo "Something went wrong. Please try again.";
     }
-
-  }
+}
 ?>
 
 <!DOCTYPE html>

@@ -1,5 +1,5 @@
 <?php
-  require 'vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use App\Infra\Connection;
 use App\Repository\UserRepository;
@@ -9,37 +9,30 @@ $connection = Connection::getConnection();
 $repository = new UserRepository($connection);
 $SubriptionRepository = new SubscriptionRepository($connection);
 
-
 function getMonthRange($year = null, $month = null) {
     $year = $year ?? date('Y');
     $month = $month ?? date('m');
 
-    // Primeiro dia
     $firstDay = date("Y-m-01", strtotime("$year-$month-01"));
-
-    // Último dia
     $lastDay = date("Y-m-t", strtotime("$year-$month-01"));
 
     return [$firstDay, $lastDay];
 }
 
-
 try {
+    $users = $repository->getAllUsers();
+    $usersActive = $repository->countUsersByStatus('S');
+    $usersPremium = $SubriptionRepository->countPlan('Premium');
 
-  $users = $repository->getAllUsers();
-  $usersActive = $repository->countUsersByStatus('S');
-  $usersPremium = $SubriptionRepository->countPlan('Premium');
+    list($firstDay, $lastDay) = getMonthRange();
 
-  list($firstDay, $lastDay) = getMonthRange();
+    $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
 
-  $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
+    $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
 
-  $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
-
-  $expiringToday = $SubriptionRepository->countExpiringToday();
-
-}catch(PDOException $e){
-  echo $e->getMessage();
+    $expiringToday = $SubriptionRepository->countExpiringToday();
+} catch (PDOException $e) {
+    echo $e->getMessage();
 }
 
 ?>
@@ -59,10 +52,9 @@ try {
   </header>
 
     <div id="dashboard" class="screen">
- 
+
     <div class="page-title">Dashboard</div>
- 
-    <!-- Cards de estatísticas -->
+
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Alunos Ativos</div>
@@ -83,17 +75,14 @@ try {
         <div class="stat-value" style="color: var(--color-danger)"><?= $expiringToday ?></div>
       </div>
     </div>
- 
-    <!-- Tabela de usuários -->
+
     <div class="dashboard-table-section">
-
-
   <main>
     <section>
       <table>
         <thead>
           <tr>
-            <th>Data</th>
+            <th>Data de cadastro</th>
             <th>Nome</th>
             <th>Email</th>
             <th>Telefone</th>
@@ -104,7 +93,7 @@ try {
         <tbody>
           <?php foreach($users as $user):  ?>
           <tr>
-            <td><?= $user->date() ?></td>
+            <td><?= $user->createdAt() ?></td>
             <td><?= $user->fullName() ?></td>
             <td><?= $user->email() ?></td>
             <td><?= $user->phone() ?></td>

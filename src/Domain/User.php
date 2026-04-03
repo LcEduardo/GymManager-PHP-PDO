@@ -8,8 +8,9 @@ class User {
     private string $full_name;
     private string $email;
     private string $password;
-    private string $date;
-    private string $phone;
+    private string $created_at;
+    private ?string $birth_date;
+    private ?string $phone;
     private string $status;
 
     public function __construct(
@@ -17,15 +18,17 @@ class User {
         string $full_name,
         string $email,
         string $password,
-        string $date,
-        string $phone,
+        string $created_at,
+        ?string $birth_date,
+        ?string $phone,
         string $status,
     ) {
         $this->id = $id;
         $this->full_name = $full_name;
         $this->email = $email;
         $this->password = $password;
-        $this->date = $date;
+        $this->created_at = $created_at;
+        $this->birth_date = $birth_date;
         $this->phone = $phone;
         $this->status = $status;
     }
@@ -50,12 +53,22 @@ class User {
         return $this->password;
     }
 
-    public function date(): string
+    public function createdAt(): string
     {
-        return $this->date;
+        return $this->created_at;
     }
 
-    public function phone(): string
+    public function birthDate(): ?string
+    {
+        return $this->birth_date;
+    }
+
+    public function date(): string
+    {
+        return $this->createdAt();
+    }
+
+    public function phone(): ?string
     {
         return $this->phone;
     }
@@ -64,7 +77,6 @@ class User {
     {
         return $this->status;
     }
-
 
     public function setFullName(string $full_name): void
     {
@@ -76,7 +88,7 @@ class User {
         $this->email = $email;
     }
 
-    public function setPhone(string $phone): void
+    public function setPhone(?string $phone): void
     {
         $this->phone = $phone;
     }
@@ -85,5 +97,4 @@ class User {
     {
         $this->id = $id;
     }
-
 }
