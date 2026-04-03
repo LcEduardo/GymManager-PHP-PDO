@@ -18,7 +18,8 @@ class UserRepository
 
         try {
             $sql = "INSERT INTO users (full_name, email, password, phone, created_at, status) 
-                    VALUES (:full_name, :email, :password, :phone, :created_at, :status)";
+                    VALUES (:full_name, :email, :password, :phone, :created_at, :status)
+                    RETURNING id";
 
             $stmt =  $this->connection->prepare($sql);
             $stmt->bindValue(':full_name', $user->fullName(), PDO::PARAM_STR);
@@ -29,11 +30,10 @@ class UserRepository
             $stmt->bindValue(':status', $user->status(), PDO::PARAM_STR);
 
             $stmt->execute();
-            
-            $id = $this->connection->lastInsertId();
+            $id = $stmt->fetchColumn();
 
             // ATUALIZAR O OBJETO
-            $user->setId($id);
+            $user->setId((int) $id);
 
             return true;
         } catch (PDOException $e) {

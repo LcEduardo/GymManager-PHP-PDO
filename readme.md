@@ -232,3 +232,30 @@ array(7) {
 Basicamente seguiu a mesma lógica do Users, criamos uma classe que compões os atributos necessários, getters and setter. 
 
 Depois disso, montamos uma estrutura para inserir o profissional no banco de dados. E aplicamos em um repository.
+
+## PostgreSQL com Docker Compose
+
+O projeto agora usa PostgreSQL por padrÃ£o na classe de conexÃ£o.
+
+### Subir o banco
+
+```bash
+docker compose up -d postgres
+```
+
+### ConfiguraÃ§Ã£o da aplicaÃ§Ã£o
+
+As credenciais ficam no arquivo `.env` da raiz:
+
+```env
+DB_DRIVER=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=gym
+DB_USERNAME=gym_user
+DB_PASSWORD=gym_password
+```
+
+### InicializaÃ§Ã£o
+
+O arquivo `init.sql` Ã© executado automaticamente na primeira criaÃ§Ã£o do container e cria as tabelas `users`, `plans` e `users_plans`, alÃ©m de popular os planos iniciais.
