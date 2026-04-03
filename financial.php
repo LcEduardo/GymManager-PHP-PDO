@@ -61,6 +61,7 @@ $hoje = date('Y-m-d');
     <div class="page-title">Financeiro</div>
     
     <div class="filter-bar">
+      // $valor é a chave do filtro (ex: 'paid'), e $label é o texto exibido no botão (ex: 'Pago')
       <?php foreach ($labelMap as $valor => $label): ?>
         <a href="/financial?status=<?= $valor ?>">
           <button class="filter-btn <?= $filtro === $valor ? $activeBtnMap[$valor] : '' ?>">

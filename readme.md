@@ -1,251 +1,200 @@
-# PDO Project 
-Fazer um código onde eu consigo mudar o banco de dados de ``sqlite`` para ``postgresql`` e subir o banco via ``Docker``;
+# Projeto Academia com PDO
 
-Criar um sistema de cadastro de usuários da academia;
+Aplicação PHP para gerenciamento básico de alunos de academia, com cadastro de usuários, vínculo com planos, dashboard administrativo, visão financeira e exportação em PDF.
 
-O que preciso para criar um cadastro de usuários para academia?
-- Informações dos clientes
-	- Name e Last Name
-	- E-mail
-	- Phones
-	- Password
-- Planos contratados
-	- Tipos
-	- Valores
-- Profissionais disponíveis 
-	- Full name
-	- Horários
-- Quais clientes estão em determinado plano
+O projeto foi construído com foco em estudo de `PDO`, organização em camadas simples (`Domain`, `Repository`, `Infra`) e evolução gradual de `SQLite` para `PostgreSQL`.
 
-## Tabelas 
+## Objetivo atual
 
-### Users
-- id (PK)
-- first_name
-- last_name
-- email (unique)
-- password (hashed)
-- phone
-- created_at
-- status (active, inactive, blocked)
-### Plans
-- id
-- name (Basic, Premium, VIP)
-- price
-- duration_days
-- description
-- active (boolean)
+Até este ponto, o sistema já permite:
 
-### User_plans (UserSubscription)
-- id
-- user_id (FK)
-- plan_id (FK)
-- start_date
-- end_date
-- payment_status
-- created_at
+- cadastrar alunos
+- listar alunos no painel administrativo
+- editar dados do aluno
+- alterar o plano atual do aluno
+- excluir aluno
+- gerar PDF com a lista de usuários
+- visualizar indicadores financeiros e status das assinaturas
+- integrar ciclos de pagamento com `n8n`
 
-### Professionals 
-- id
-- full_name
-- specialty (personal trainer, nutritionist, etc.)
-- phone
-- email
-- active
+## Stack
 
----
+- PHP
+- PDO
+- PostgreSQL
+- Docker Compose
+- n8n
+- Dompdf
+- Composer com autoload `PSR-4`
 
-## Primeiro Passo:
+## Estrutura do projeto
 
-Vamos usar SQLITE pois é mais simples e como é um projeto para aprender eu não preciso me preocupar com Docker e etc.
-
-O DBEAVER eu só preciso criar uma conexão informar o caminho do meu ``arquivo .sqlite`` e voilá.
-
-Vamos usar o [[Composer]] para trabalhar com ``autoload`` dele para isso usamos um json bem simples:
-
-```json
-{
-
-    "autoload": {
-        "psr-4": {
-            "App\\": "src/"
-        }
-    },
-    "require": {
-        "ext-pdo": "*"
-    }
-}
+```text
+.
+├── css/                       # estilos das telas
+├── img/                       # ícones usados na interface
+├── n8n/                       # documentação e workflows importáveis
+├── src/
+│   ├── Domain/                # entidades de negócio
+│   ├── Infra/                 # conexão com banco
+│   └── Repository/            # acesso a dados
+├── adm.php                    # dashboard principal
+├── register-user.php          # cadastro de aluno
+├── edit.php                   # formulário de edição
+├── update.php                 # persistência da edição
+├── delete.php                 # exclusão de usuário
+├── financial.php              # visão financeira
+├── pdf.php                    # template HTML do PDF
+├── download-pdf.php           # geração do PDF
+├── index.php                  # roteador simples
+├── init.sql                   # criação inicial do banco
+├── docker-compose.yml         # PostgreSQL + n8n
+└── .env.example               # variáveis de ambiente de exemplo
 ```
 
-E como só queremos usar o ``autoload`` automático só rodar o comando ``composer dump-autoload``;
+## Arquitetura atual
 
-Qualquer alteração em ``composer.json`` precisa rodar o comando acima.
+### `src/Infra`
 
-## Problema 1:
+- `Connection.php`: centraliza a criação da conexão PDO.
+- Lê variáveis do arquivo `.env`.
+- Suporta `pgsql` e `sqlite`.
+- Hoje o fluxo principal do projeto está preparado para `PostgreSQL`.
 
-Criar uma conexão com o banco, eu pesquisei certinho na [documentação do php](https://www.php.net/manual/en/pdo.connections.php) e na hora do gol esqueci ``:`` que deu erro.
+### `src/Domain`
 
-```php
-databasePath = __DIR__ . '/../gym.sqlite';
-try {
-    $dbh = new PDO('sqlite:' . $databasePath);
-    echo 'Conectei pae';
-}catch(PDOException $e) {
-    echo $e->getMessage();
-}
-```
+Representa os objetos de negócio da aplicação:
 
-Transformar em uma classe.
+- `User`
+- `Plan`
+- `UserSubscription`
+- `Professional`
 
-## Como pensar sempre
+Observação: a entidade `Professional` já existe no código, mas ainda não está integrada ao fluxo principal da aplicação nem ao `init.sql`.
 
-Quando for transformar código em classe, pergunte
-1. Qual é a responsabilidade?
-2. Essa lógica pode ser reutilizada?
-3. Preciso guardar estado?
-4. Quero flexibilidade futura?
+### `src/Repository`
 
-## Static Method
-- Pesquisar o que é **Método Estático** 
-	- -> ela pode ser chamada sem instanciar um objeto;
-	- -> não tem acesso a nenhuma atributo;
+Responsável pela comunicação com o banco:
 
+- `UserRepository`
+- `PlanRepository`
+- `SubscriptionRepository`
+- `ProfessionalRepository`
 
-```php
-class Connection
-{
+## Fluxo principal da aplicação
 
-    public static function getConnection(): PDO {
-        $databasePath = __DIR__ . '/../gym.sqlite';
-        try {
-            return  new PDO('sqlite:' . $databasePath);
-        }catch(PDOException $e) {
-            throw new PDOException($e->getMessage());
-        }
-    }
-}
-```
-Nesse caso, como já criamos um objeto ``new PDO`` eu não preciso instanciar isso posteriormente. 
+### Cadastro de aluno
 
-# Inserindo clientes
+Ao cadastrar um aluno:
 
-## Prepare()
+1. os dados do formulário são recebidos em `register-user.php`
+2. a senha é armazenada com `password_hash`
+3. o usuário é salvo na tabela `users`
+4. o plano selecionado é buscado na tabela `plans`
+5. é criado um ciclo inicial em `users_plans` com status `pending`
 
-Ele retorna um objeto [[PDO#prepared statements]] ou se o banco não conseguir preparar a situação ele retorna ``false``. Enviamos um molde do que será executado para o banco preparar, usamos os placeholders em vez de valores.
+### Dashboard
 
-```php
+O painel em `adm.php` exibe:
 
-$sql = "INSERT INTO users (full_name, email, password, phone, created_at, status)
-        VALUES (:full_name, :email, :password, :phone, :created_at, :status)";
+- total de alunos ativos
+- receita mensal baseada em assinaturas `paid`
+- quantidade de alunos com plano premium
+- quantidade de assinaturas vencidas ou vencendo hoje
+- tabela com todos os usuários cadastrados
 
-$stmt = $pdo->prepare($sql);
-```
+### Financeiro
 
-Após tudo já estar preparado usamos o ``bindvalue()`` para passar aos placeholders os valores necessários.
+A tela `financial.php` lista assinaturas com filtro por status:
 
-```php
-stmt->bindValue(':full_name', $userBatman->fullName(), PDO::PARAM_STR);
+- `todos`
+- `paid`
+- `pending`
+- `vencido`
 
-$stmt->bindValue(':email', $userBatman->email(), PDO::PARAM_STR);
+Essa visão cruza usuários, planos e ciclos de assinatura para mostrar a situação atual de cada cobrança.
 
-$stmt->bindValue(':password', $userBatman->password(), PDO::PARAM_STR);
+### PDF
 
-$stmt->bindValue(':phone', $userBatman->phone(), PDO::PARAM_STR);
+`download-pdf.php` usa `Dompdf` para gerar um relatório em PDF com a lista de usuários.
 
-$stmt->bindValue(':created_at', $userBatman->date(), PDO::PARAM_STR);
+## Rotas disponíveis
 
-$stmt->bindValue(':status', $userBatman->status(), PDO::PARAM_STR);
-```
+O arquivo `index.php` faz um roteamento simples por URL.
 
-## Ideia de OOP
+| Rota | Arquivo | Função |
+|---|---|---|
+| `/` | `adm.php` | dashboard |
+| `/adm` | `adm.php` | dashboard |
+| `/register` | `register-user.php` | cadastro de aluno |
+| `/edit` | `edit.php` | formulário de edição |
+| `/update` | `update.php` | atualização de dados |
+| `/delete` | `delete.php` | exclusão de aluno |
+| `/download` | `download-pdf.php` | exportação em PDF |
+| `/financial` | `financial.php` | visão financeira |
 
-A solution to make our code more structured is to create a method responsible for creating a user. However, we should not put this method inside the `User` class, because `User` represents a real-world entity, while `createUser()` represents database (SQL) logic, which is an infrastructure concern, not a domain concern.
+## Banco de dados
 
-Visando essa ideia criamos um arquivo chamado ``UserRepository``;
-### UserRepository
+### Tabelas criadas em `init.sql`
 
-Basically, is a class responsible to communicate with database. **Therefore, Repository is a class that i use to communicate with database**.
+#### `users`
 
-**The next step:** is Plan a real-world entity?
+Armazena os dados dos alunos:
 
-Yes, because type of plan, price and duration represents something that exists in the business domain. Therefore, we need a class. 
+- `id`
+- `full_name`
+- `email`
+- `password`
+- `phone`
+- `birth_date`
+- `created_at`
+- `status`
 
-### User_plans
+### `plans`
 
-> Precisamos nos perguntar, se isso é apenas uma tabela para juntar informações ou representa uma parte do meu negócio?
+Armazena os planos disponíveis:
 
-Como temos ``start_date``, ``end_date`` and ``payment_status``this is not just a simple many-to-many relation. Isso é um domain do meu negócio pois usuários se cadastram em um plano onde tem data de inicio e fim, além se a fatura foi paga ou não. 
+- `id`
+- `name`
+- `durantio_days`
+- `description`
+- `active`
+- `price`
 
-Nesse sentido User_plans está errado e deveria ser ``Subscription`` or ``UserSubscriptio``. 
+Observação: o nome da coluna está como `durantio_days` no SQL atual. A documentação mantém esse nome porque é assim que o banco está definido hoje.
 
-## User float with bindValue
+### `users_plans`
 
-Não tem! Basicamente usamos ``PDO::PARAM_STR`` e o banco fica responsável por converter isso.
+Representa os ciclos de assinatura de cada aluno:
 
-## Criando um Subscription
+- `id`
+- `user_id`
+- `plan_id`
+- `start_date`
+- `end_date`
+- `payment_status`
 
-Nesse ponto eu preciso do id do usuário que eu já instanciei e o mesmo para o plano. A pergunta que veio foi: "Eu preciso fazer um select e criar um novo objeto ou apenas uso um select para trazer o id?"
+Status aceitos atualmente:
 
-Só precisamos do id então não tem necessidade de criar um novo objeto para tal, isso ajuda na performática do código e deixa mais simples. A outra abordagem precisaria vir caso  necessitamos de regras e comportamentos relacionados com a entidade User, por exemplo, alterar o id dele ou nome e assim vai. Ai é claro, em UserRepository a gente filtraria por esse usuário que desejarmos. 
+- `pending`
+- `paid`
+- `vencido`
 
-### Criando um Object User a partir de um SELECT
+## Planos iniciais
 
-Eu fiz um insert diretamente pelo banco, com isso vou puxar esses dados especifico do usuário e criar um objeto.
+O `init.sql` já popula os seguintes planos:
 
-Em primeiro ponto, para rodar um **SELECT** precisamos rodar [[PDO#Funções Embutidas]] como ``query()`` onde retorna um PDOStatement object, not the data itself.
+- `Basic`
+- `Premium`
+- `VIP`
 
-Therefore, utilizar o ``fecth()``junto com o parâmetro PDO::FETCH_ASSOC que retorna um array onde cada índice representa as colunas retornadas no SELECT:
+No formulário atual da interface, apenas `Basic` e `Premium` aparecem para seleção.
 
-```php
-$sqlUser = "SELECT * FROM users WHERE id = 4 ;";
+## Variáveis de ambiente
 
-$stmt = $pdo->query($sqlUser);
+Crie um arquivo `.env` na raiz com base no `.env.example`.
 
-var_dump($stmt->fetch(PDO::FETCH_ASSOC));
-```
-
-Return:
-
-```bash
-array(7) {
-  ["id"]=>
-  int(4)
-  ["full_name"]=>
-  string(17) "Sergin Bala Tensa"
-  ["email"]=>
-  string(27) "serginbalatensa@outlook.com"
-  ["password"]=>
-  string(6) "000021"
-  ["phone"]=>
-  string(11) "19945678900"
-  ["created_at"]=>
-  string(10) "2026-02-25"
-  ["status"]=>
-  string(1) "0"
-}
-```
-
-**Attention:** pensando em algo mais profissional o ``id = 4`` viria de uma URL ou Form e com isso corremos o risco de [[PDO#SQL Injection]]. Por isso, a forma recomendada quando não vamos rodar um SELECT genérico é usando ``prepare()``
-
-# Create a Professionals
----
-Basicamente seguiu a mesma lógica do Users, criamos uma classe que compões os atributos necessários, getters and setter. 
-
-Depois disso, montamos uma estrutura para inserir o profissional no banco de dados. E aplicamos em um repository.
-
-## PostgreSQL com Docker Compose
-
-O projeto agora usa PostgreSQL por padrÃ£o na classe de conexÃ£o.
-
-### Subir o banco
-
-```bash
-docker compose up -d postgres
-```
-
-### ConfiguraÃ§Ã£o da aplicaÃ§Ã£o
-
-As credenciais ficam no arquivo `.env` da raiz:
+### Banco
 
 ```env
 DB_DRIVER=pgsql
@@ -256,15 +205,7 @@ DB_USERNAME=gym_user
 DB_PASSWORD=gym_password
 ```
 
-### InicializaÃ§Ã£o
-
-O arquivo `init.sql` é executado automaticamente na primeira criação do container e cria as tabelas `users`, `plans` e `users_plans`, além de popular os planos iniciais.
-
-## n8n
-
-O `docker-compose.yml` também sobe um container do `n8n` conectado ao mesmo PostgreSQL.
-
-### VariÃ¡veis no `.env`
+### n8n
 
 ```env
 N8N_DB_SCHEMA=n8n
@@ -279,17 +220,95 @@ N8N_BASIC_AUTH_PASSWORD=admin123
 N8N_ENCRYPTION_KEY=change_this_to_a_long_random_string
 ```
 
-### Subir banco e n8n
+## Como executar o projeto
+
+### 1. Instalar dependências
+
+```bash
+composer install
+```
+
+### 2. Criar o arquivo de ambiente
+
+Use o `.env.example` como base para criar o `.env`.
+
+### 3. Subir os containers
 
 ```bash
 docker compose up -d
 ```
 
-### Fluxos sugeridos
+Isso sobe:
 
-- `payment-received-webhook.json`: marca o ciclo pago e cria o próximo ciclo como `pending`
-- `generate-next-cycle-cron.json`: cria ciclos pendentes que estejam faltando
-- `expire-subscriptions-cron.json`: marca como `vencido` os ciclos pendentes após o vencimento
-- `gymGatewayPaid.json`: exemplo completo do fluxo de pagamento com trigger manual para teste
+- PostgreSQL
+- n8n
 
-Os arquivos ficam em `n8n/workflows` e a explicação está em `n8n/README.md`.
+Na primeira inicialização, o `PostgreSQL` executa automaticamente o arquivo `init.sql`.
+
+### 4. Rodar o servidor PHP
+
+Exemplo com servidor embutido do PHP:
+
+```bash
+php -S localhost:8000
+```
+
+Depois, acesse:
+
+- aplicação: `http://localhost:8000`
+- n8n: `http://localhost:5678`
+
+## n8n
+
+O projeto usa `n8n` para automatizar o histórico de ciclos de pagamento.
+
+Os workflows prontos estão em `n8n/workflows`:
+
+- `gymGatewayPaid.json`
+- `payment-received-webhook.json`
+- `generate-next-cycle-cron.json`
+- `expire-subscriptions-cron.json`
+
+### Comportamento esperado
+
+- quando um ciclo é pago, ele pode ser marcado como `paid`
+- o próximo ciclo pode ser criado automaticamente como `pending`
+- ciclos pendentes vencidos podem ser marcados como `vencido`
+
+Isso impacta diretamente:
+
+- receita mensal do dashboard
+- contador de vencimentos
+- filtros da tela financeira
+
+## Situação atual do projeto
+
+### O que já está consistente
+
+- conexão centralizada com PDO
+- separação básica entre domínio, infraestrutura e acesso a dados
+- uso de prepared statements nos repositórios
+- hash de senha no cadastro
+- integração com PostgreSQL via Docker
+- automações com n8n pensadas para ciclos recorrentes
+
+### Pontos em evolução
+
+- não há suíte de testes automatizados
+- a entidade `Professional` ainda não está conectada ao schema principal
+- existem alguns textos com problema de acentuação em arquivos HTML e no projeto
+- o campo `VIP` existe no banco, mas ainda não está exposto no formulário atual
+- o projeto usa um roteador simples em `index.php`, sem framework
+
+## Possíveis próximos passos
+
+- padronizar encoding UTF-8 em todos os arquivos
+- adicionar validações de domínio e mensagens de erro mais claras
+- incluir tela e tabela para profissionais
+- expor todos os planos ativos no formulário a partir do banco
+- criar testes para repositórios e fluxos principais
+- separar melhor camadas de apresentação e regras de negócio
+
+## Resumo
+
+Este projeto já funciona como uma base real de administração de alunos para academia, com cadastro, assinatura, financeiro, PDF e automações externas via n8n. Ele ainda está em fase de evolução, mas já tem uma estrutura boa para continuar crescendo de forma organizada.
