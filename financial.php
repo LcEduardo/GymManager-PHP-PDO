@@ -70,12 +70,10 @@ $hoje = date('Y-m-d');
       <?php endforeach; ?>
     </div>
 
-    <!-- Contador de resultados -->
     <div class="results-count">
       Exibindo <span><?= count($assinaturas) ?></span> resultado<?= count($assinaturas) !== 1 ? 's' : '' ?>
     </div>
 
-    <!-- Tabela -->
     <div class="dashboard-table-section">
       <table>
         <thead>
@@ -100,19 +98,13 @@ $hoje = date('Y-m-d');
           <?php else: ?>
             <?php foreach ($assinaturas as $row): ?>
               <?php
-                // Define o status real: se end_date passou e não está pago → vencido
                 $status = $row['payment_status'];
-                if ($status !== 'paid' && $row['end_date'] < $hoje) {
-                    $status = 'vencido';
-                }
-
                 $badge = $badgeMap[$status] ?? ['classe' => 'badge', 'label' => $status];
 
-                // Classe especial na data de vencimento
                 $dateClass = '';
-                if ($row['end_date'] < $hoje && $status !== 'paid') {
+                if ($status === 'vencido') {
                     $dateClass = 'date-vencido';
-                } elseif ($row['end_date'] === $hoje) {
+                } elseif ($status === 'pending' && $row['end_date'] === $hoje) {
                     $dateClass = 'date-hoje';
                 }
               ?>

@@ -258,4 +258,36 @@ DB_PASSWORD=gym_password
 
 ### InicializaÃ§Ã£o
 
-O arquivo `init.sql` Ã© executado automaticamente na primeira criaÃ§Ã£o do container e cria as tabelas `users`, `plans` e `users_plans`, alÃ©m de popular os planos iniciais.
+O arquivo `init.sql` é executado automaticamente na primeira criação do container e cria as tabelas `users`, `plans` e `users_plans`, além de popular os planos iniciais.
+
+## n8n
+
+O `docker-compose.yml` também sobe um container do `n8n` conectado ao mesmo PostgreSQL.
+
+### VariÃ¡veis no `.env`
+
+```env
+N8N_DB_SCHEMA=n8n
+N8N_HOST=localhost
+N8N_PORT=5678
+N8N_PROTOCOL=http
+N8N_WEBHOOK_URL=http://localhost:5678/
+N8N_EDITOR_BASE_URL=http://localhost:5678
+N8N_BASIC_AUTH_ACTIVE=true
+N8N_BASIC_AUTH_USER=admin
+N8N_BASIC_AUTH_PASSWORD=admin123
+N8N_ENCRYPTION_KEY=change_this_to_a_long_random_string
+```
+
+### Subir banco e n8n
+
+```bash
+docker compose up -d
+```
+
+### Fluxos sugeridos
+
+- Webhook de pagamento: atualiza `users_plans.payment_status` para `paid`
+- Cron diário: atualiza `users_plans.payment_status` para `vencido` quando `end_date <= CURRENT_DATE`
+
+Os SQLs de apoio então em `n8n/sql` e a explicação estão em `n8n/README.md`.

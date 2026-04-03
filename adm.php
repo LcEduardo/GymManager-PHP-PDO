@@ -27,10 +27,8 @@ try {
     list($firstDay, $lastDay) = getMonthRange();
 
     $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
-
     $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
-
-    $expiringToday = $SubriptionRepository->countExpiringToday();
+    $dueSubscriptions = $SubriptionRepository->countDueSubscriptions();
 } catch (PDOException $e) {
     echo $e->getMessage();
 }
@@ -71,8 +69,8 @@ try {
         <div class="stat-value"><?= $usersPremium ?></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Vencendo Hoje</div>
-        <div class="stat-value" style="color: var(--color-danger)"><?= $expiringToday ?></div>
+        <div class="stat-label">Vencidas / Hoje</div>
+        <div class="stat-value" style="color: var(--color-danger)"><?= $dueSubscriptions ?></div>
       </div>
     </div>
 
