@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS users_plans (
     start_date      DATE         NOT NULL,
     end_date        DATE         NOT NULL,
     payment_status  VARCHAR(20)  NOT NULL DEFAULT 'pending'
-        CHECK (payment_status IN ('pending', 'paid', 'vencido'))
+        CHECK (payment_status IN ('pending', 'paid', 'vencido')),
+    CONSTRAINT unique_user_cycle UNIQUE (user_id, start_date, end_date)
 );
 
 -- Dados iniciais de planos

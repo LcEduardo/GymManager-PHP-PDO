@@ -1,20 +1,20 @@
 {
-  "name": "Gym - Payment Received Webhook",
+  "name": "gymGatewayPaid",
   "nodes": [
     {
       "parameters": {
-        "path": "gym/payment-received",
         "httpMethod": "POST",
+        "path": "gym/payment-received",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-payment",
+      "id": "8b875919-3762-44ff-828a-ec5054835d8d",
       "name": "Payment Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        260,
-        300
+        -400,
+        -96
       ],
       "webhookId": "gym-payment-received"
     },
@@ -29,8 +29,8 @@
           },
           "conditions": [
             {
-              "id": "has-subscription-id",
-              "leftValue": "={{ $json.body.subscription_id }}",
+              "id": "967fabbb-54c3-4a55-a2c5-1cf9c0c3111a",
+              "leftValue": "={{ $json.subscription_id ?? $json.body.subscription_id }}",
               "rightValue": "",
               "operator": {
                 "type": "number",
@@ -43,13 +43,13 @@
         },
         "options": {}
       },
-      "id": "if-has-subscription-id",
+      "id": "21a31fb0-a1a3-4234-8a32-51c1dae4759f",
       "name": "Has subscription_id?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        500,
-        300
+        -32,
+        -48
       ]
     },
     {
@@ -57,16 +57,16 @@
         "operation": "executeQuery",
         "query": "WITH paid_cycle AS (\n    UPDATE users_plans\n    SET payment_status = 'paid'\n    WHERE id = $1\n    RETURNING id, user_id, plan_id, start_date, end_date, payment_status\n),\npaid_cycle_with_plan AS (\n    SELECT\n        paid_cycle.id AS paid_subscription_id,\n        paid_cycle.user_id,\n        paid_cycle.plan_id,\n        paid_cycle.start_date,\n        paid_cycle.end_date,\n        paid_cycle.payment_status,\n        plans.durantio_days,\n        (paid_cycle.end_date + INTERVAL '1 day')::date AS next_start_date,\n        ((paid_cycle.end_date + INTERVAL '1 day')::date + ((plans.durantio_days - 1) * INTERVAL '1 day'))::date AS next_end_date\n    FROM paid_cycle\n    INNER JOIN plans ON plans.id = paid_cycle.plan_id\n),\nnext_cycle AS (\n    INSERT INTO users_plans (user_id, plan_id, start_date, end_date, payment_status)\n    SELECT\n        user_id,\n        plan_id,\n        next_start_date,\n        next_end_date,\n        'pending'\n    FROM paid_cycle_with_plan\n    WHERE NOT EXISTS (\n        SELECT 1\n        FROM users_plans\n        WHERE user_id = paid_cycle_with_plan.user_id\n          AND start_date = paid_cycle_with_plan.next_start_date\n          AND end_date = paid_cycle_with_plan.next_end_date\n    )\n    RETURNING id, start_date, end_date, payment_status\n)\nSELECT\n    paid_cycle_with_plan.paid_subscription_id,\n    paid_cycle_with_plan.user_id,\n    paid_cycle_with_plan.payment_status AS paid_status,\n    COALESCE(next_cycle.id, existing_cycle.id) AS next_subscription_id,\n    COALESCE(next_cycle.start_date, existing_cycle.start_date) AS next_start_date,\n    COALESCE(next_cycle.end_date, existing_cycle.end_date) AS next_end_date,\n    COALESCE(next_cycle.payment_status, existing_cycle.payment_status) AS next_status\nFROM paid_cycle_with_plan\nLEFT JOIN next_cycle ON TRUE\nLEFT JOIN users_plans AS existing_cycle\n    ON existing_cycle.user_id = paid_cycle_with_plan.user_id\n   AND existing_cycle.start_date = paid_cycle_with_plan.next_start_date\n   AND existing_cycle.end_date = paid_cycle_with_plan.next_end_date;",
         "options": {
-          "queryReplacement": "={{ [$json.body.subscription_id] }}"
+          "queryReplacement": "={{ [$json.subscription_id ?? $json.body.subscription_id] }}"
         }
       },
-      "id": "postgres-renew-subscription",
+      "id": "88700955-2fad-461c-82af-bb2df8152135",
       "name": "Mark Paid And Queue Next Cycle",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        780,
-        220
+        224,
+        -176
       ],
       "credentials": {
         "postgres": {
@@ -83,13 +83,13 @@
           "responseCode": 200
         }
       },
-      "id": "respond-success",
+      "id": "d1a1548a-58df-41c8-bc27-19a67c2a026c",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.3,
       "position": [
-        1080,
-        220
+        496,
+        -176
       ]
     },
     {
@@ -100,14 +100,81 @@
           "responseCode": 422
         }
       },
-      "id": "respond-invalid",
+      "id": "06fd0e7e-a1c2-4ad7-9841-86be90a32284",
       "name": "Respond Invalid Payload",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.3,
       "position": [
-        760,
-        420
+        224,
+        64
       ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 0 * * *"
+            }
+          ]
+        }
+      },
+      "id": "c21c9df5-7738-4762-9b69-4f6dc82f7978",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE users_plans\nSET payment_status = 'vencido'\nWHERE payment_status = 'pending'\n  AND end_date < CURRENT_DATE\nRETURNING id, user_id, end_date, payment_status;",
+        "options": {}
+      },
+      "id": "b5694ad9-1373-4711-8d71-dfa118110d48",
+      "name": "Expire Subscriptions",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -152,
+        272
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "replace-after-import",
+          "name": "Gym Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "d2416efc-e014-430f-bc74-d365ad62371a",
+      "name": "When clicking Execute workflow"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"name\": \"Lucas Eduardo\",\n  \"subscription_id\": 2\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -168,
+        64
+      ],
+      "id": "7dc9064b-8334-492a-b980-60f3dd4428c7",
+      "name": "Edit Fields"
     }
   ],
   "pinData": {},
@@ -151,15 +218,49 @@
           }
         ]
       ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Expire Subscriptions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Has subscription_id?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "payment-received-v2",
+  "versionId": "68696175-04c5-4fa0-822c-1152fe2d087e",
   "meta": {
     "templateCredsSetupCompleted": false
   },
+  "id": "lO0nJ2gE1tcZK2vb",
   "tags": []
 }

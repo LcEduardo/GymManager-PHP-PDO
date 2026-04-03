@@ -24,7 +24,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE users_plans\nSET payment_status = 'vencido'\nWHERE payment_status != 'paid'\n  AND end_date <= CURRENT_DATE\nRETURNING id, user_id, end_date, payment_status;"
+        "query": "UPDATE users_plans\nSET payment_status = 'vencido'\nWHERE payment_status = 'pending'\n  AND end_date < CURRENT_DATE\nRETURNING id, user_id, end_date, payment_status;"
       },
       "id": "postgres-expire-subscriptions",
       "name": "Expire Subscriptions",

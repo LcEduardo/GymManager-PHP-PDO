@@ -37,7 +37,16 @@ class SubscriptionRepository
 
     public function countPlan(string $plan): int
     {
-        $sql = "SELECT COUNT(*) FROM users_plans INNER JOIN plans ON users_plans.plan_id = plans.id WHERE plans.name = :plan";
+        $sql = "SELECT COUNT(*)
+                FROM (
+                    SELECT DISTINCT ON (users_plans.user_id)
+                        users_plans.user_id,
+                        plans.name AS plan_name
+                    FROM users_plans
+                    INNER JOIN plans ON users_plans.plan_id = plans.id
+                    ORDER BY users_plans.user_id, users_plans.start_date DESC, users_plans.id DESC
+                ) AS latest_subscriptions
+                WHERE plan_name = :plan";
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':plan', $plan, PDO::PARAM_STR);
         $stmt->execute();
@@ -46,7 +55,11 @@ class SubscriptionRepository
 
     public function findByUserId(int $userId): ?array
     {
-        $sql = "SELECT * FROM users_plans WHERE user_id = :user_id LIMIT 1";
+        $sql = "SELECT *
+                FROM users_plans
+                WHERE user_id = :user_id
+                ORDER BY start_date DESC, id DESC
+                LIMIT 1";
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
         $stmt->execute();
@@ -55,7 +68,22 @@ class SubscriptionRepository
 
     public function updatePlan(int $userId, int $planId): void
     {
-        $sql = "UPDATE users_plans SET plan_id = :plan_id WHERE user_id = :user_id";
+        $sql = "UPDATE users_plans
+                SET plan_id = :plan_id
+                WHERE id = (
+                    SELECT id
+                    FROM users_plans
+                    WHERE user_id = :user_id
+                    ORDER BY
+                        CASE
+                            WHEN payment_status = 'pending' THEN 0
+                            WHEN payment_status = 'paid' THEN 1
+                            ELSE 2
+                        END,
+                        start_date DESC,
+                        id DESC
+                    LIMIT 1
+                )";
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':plan_id', $planId, PDO::PARAM_INT);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -81,7 +109,14 @@ class SubscriptionRepository
     public function countDueSubscriptions(): int
     {
         $sql = "SELECT COUNT(*)
-                FROM users_plans
+                FROM (
+                    SELECT DISTINCT ON (user_id)
+                        user_id,
+                        end_date,
+                        payment_status
+                    FROM users_plans
+                    ORDER BY user_id, start_date DESC, id DESC
+                ) AS latest_subscriptions
                 WHERE end_date <= :today
                 AND payment_status != 'paid'";
 
@@ -105,7 +140,7 @@ class SubscriptionRepository
                         users_plans.end_date,
                         CASE
                             WHEN users_plans.payment_status = 'paid' THEN 'paid'
-                            WHEN users_plans.payment_status = 'vencido' OR users_plans.end_date <= :hoje THEN 'vencido'
+                            WHEN users_plans.payment_status = 'vencido' OR users_plans.end_date < :hoje THEN 'vencido'
                             ELSE 'pending'
                         END AS payment_status
                     FROM users_plans

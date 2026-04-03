@@ -287,7 +287,9 @@ docker compose up -d
 
 ### Fluxos sugeridos
 
-- Webhook de pagamento: atualiza `users_plans.payment_status` para `paid`
-- Cron diário: atualiza `users_plans.payment_status` para `vencido` quando `end_date <= CURRENT_DATE`
+- `payment-received-webhook.json`: marca o ciclo pago e cria o próximo ciclo como `pending`
+- `generate-next-cycle-cron.json`: cria ciclos pendentes que estejam faltando
+- `expire-subscriptions-cron.json`: marca como `vencido` os ciclos pendentes após o vencimento
+- `gymGatewayPaid.json`: exemplo completo do fluxo de pagamento com trigger manual para teste
 
-Os SQLs de apoio então em `n8n/sql` e a explicação estão em `n8n/README.md`.
+Os arquivos ficam em `n8n/workflows` e a explicação está em `n8n/README.md`.

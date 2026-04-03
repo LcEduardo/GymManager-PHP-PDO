@@ -1,0 +1,69 @@
+{
+  "name": "Gym - Generate Next Cycle Daily",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-schedule",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH paid_cycles AS (\n    SELECT\n        users_plans.user_id,\n        users_plans.plan_id,\n        (users_plans.end_date + INTERVAL '1 day')::date AS next_start_date,\n        ((users_plans.end_date + INTERVAL '1 day')::date + ((plans.durantio_days - 1) * INTERVAL '1 day'))::date AS next_end_date\n    FROM users_plans\n    INNER JOIN plans ON plans.id = users_plans.plan_id\n    WHERE users_plans.payment_status = 'paid'\n),\nmissing_cycles AS (\n    SELECT DISTINCT ON (paid_cycles.user_id, paid_cycles.next_start_date, paid_cycles.next_end_date)\n        paid_cycles.user_id,\n        paid_cycles.plan_id,\n        paid_cycles.next_start_date,\n        paid_cycles.next_end_date\n    FROM paid_cycles\n    LEFT JOIN users_plans\n        ON users_plans.user_id = paid_cycles.user_id\n       AND users_plans.start_date = paid_cycles.next_start_date\n       AND users_plans.end_date = paid_cycles.next_end_date\n    WHERE users_plans.id IS NULL\n)\nINSERT INTO users_plans (user_id, plan_id, start_date, end_date, payment_status)\nSELECT\n    user_id,\n    plan_id,\n    next_start_date,\n    next_end_date,\n    'pending'\nFROM missing_cycles\nRETURNING id, user_id, start_date, end_date, payment_status;",
+        "options": {}
+      },
+      "id": "postgres-generate-next-cycle",
+      "name": "Generate Missing Next Cycles",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        560,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "replace-after-import",
+          "name": "Gym Postgres"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Generate Missing Next Cycles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "generate-next-cycle-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

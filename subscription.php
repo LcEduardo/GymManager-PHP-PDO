@@ -23,7 +23,7 @@ $subscription = new UserSubscription(
     plan_id: $plan['id'],
     start_date: '2026-02-01',
     end_date: '2026-02-28',
-    payment_status: 'Pendente'
+    payment_status: 'pending'
 );
 
 // var_dump($subscription);

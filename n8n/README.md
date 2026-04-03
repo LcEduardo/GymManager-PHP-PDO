@@ -1,17 +1,16 @@
 # n8n integration
 
-This project uses n8n for two database automation flows:
+This project uses n8n to keep subscription cycles in sync with the database history.
 
-1. Payment webhook
-   Receives a payment confirmation payload and updates `users_plans.payment_status` to `paid`.
-2. Daily expiration cron
-   Runs once a day and updates `users_plans.payment_status` to `vencido` when `end_date <= CURRENT_DATE` and the row is not paid.
+Each row in `users_plans` represents one billing cycle. A payment should settle the current cycle and queue the next one instead of overwriting the same row.
 
 ## Importable workflows
 
 The folder `n8n/workflows` contains ready-to-import workflow JSON files:
 
+- `gymGatewayPaid.json`
 - `payment-received-webhook.json`
+- `generate-next-cycle-cron.json`
 - `expire-subscriptions-cron.json`
 
 After importing:
@@ -32,23 +31,39 @@ Expected payload example:
 
 ```json
 {
-  "subscription_id": 12,
-  "payment_status": "paid"
+  "subscription_id": 12
 }
 ```
 
-Use the SQL from `n8n/sql/payment-received.sql`.
+Behavior:
+
+- updates the informed cycle to `paid`
+- calculates the next cycle using the plan duration
+- inserts the next cycle as `pending` if it does not exist yet
 
 Default webhook path after activation:
 
 - `POST /webhook/gym/payment-received`
+
+The file `gymGatewayPaid.json` is a practical example of the same payment flow with a manual trigger for testing.
+
+### Generate next cycle daily
+
+- `Schedule Trigger`
+- `Postgres`
+
+This workflow is a safety net. It creates missing `pending` cycles for paid subscriptions that still do not have a successor row.
+
+Recommended schedule:
+
+- Every day at `01:00`
 
 ### Daily expiration cron
 
 - `Schedule Trigger`
 - `Postgres`
 
-Use the SQL from `n8n/sql/expire-subscriptions.sql`.
+This workflow marks overdue pending cycles as `vencido`.
 
 Recommended schedule:
 
@@ -59,8 +74,8 @@ Recommended schedule:
 The PHP app now treats statuses consistently:
 
 - `paid`: contributes to monthly revenue
-- `pending`: active unpaid subscription
-- `vencido`: expired unpaid subscription
+- `pending`: next cycle created and awaiting payment
+- `vencido`: pending cycle whose due date has passed
 
 Any update executed by n8n is reflected automatically in:
 
