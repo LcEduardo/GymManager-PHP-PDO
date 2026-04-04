@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
-
 use App\Domain\User;
 use App\Infra\Connection;
 use App\Repository\UserRepository;

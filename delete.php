@@ -1,7 +1,5 @@
 <?php
 
-require 'vendor/autoload.php';
-
 use App\Infra\Connection;
 use App\Repository\UserRepository;
 

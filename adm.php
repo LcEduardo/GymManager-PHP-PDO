@@ -1,5 +1,4 @@
 <?php
-require 'vendor/autoload.php';
 
 use App\Infra\Connection;
 use App\Repository\UserRepository;
@@ -41,8 +40,8 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gym Management</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/index.css">
 </head>
 <body>
     <header>
@@ -98,8 +97,8 @@ try {
             <td><?= $user->status() ?></td>
             <td>
               <div class="actions">
-                <a href="/edit?id=<?= $user->id() ?>"><button><img src="img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
-                <a href="/delete?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
+                <a href="/edit?id=<?= $user->id() ?>"><button><img src="/public/img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
+                <a href="/delete?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="/public/img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
               </div>
             </td>
           </tr>

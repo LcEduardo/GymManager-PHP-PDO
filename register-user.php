@@ -1,7 +1,5 @@
 <?php
 
-require 'vendor/autoload.php';
-
 use App\Domain\User;
 use App\Infra\Connection;
 use App\Repository\UserRepository;
@@ -64,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro de Usuário – Academia</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/form.css">
+  <link rel="stylesheet" href="/public/css/style.css">
+  <link rel="stylesheet" href="/public/css/form.css">
 </head>
 <body>
 

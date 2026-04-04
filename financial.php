@@ -1,7 +1,5 @@
 <?php
 
-require 'vendor/autoload.php';
-
 use App\Infra\Connection;
 use App\Repository\SubscriptionRepository;
 
@@ -46,9 +44,9 @@ $hoje = date('Y-m-d');
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financeiro – Academia</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/financial.css">
-  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="/public/css/style.css">
+  <link rel="stylesheet" href="/public/css/financial.css">
+  <link rel="stylesheet" href="/public/css/index.css">
 </head>
 <body>
 
@@ -61,7 +59,7 @@ $hoje = date('Y-m-d');
     <div class="page-title">Financeiro</div>
     
     <div class="filter-bar">
-      // $valor é a chave do filtro (ex: 'paid'), e $label é o texto exibido no botão (ex: 'Pago')
+      <!-- $valor é a chave do filtro (ex: 'paid'), e $label é o texto exibido no botão (ex: 'Pago') -->
       <?php foreach ($labelMap as $valor => $label): ?>
         <a href="/financial?status=<?= $valor ?>">
           <button class="filter-btn <?= $filtro === $valor ? $activeBtnMap[$valor] : '' ?>">
