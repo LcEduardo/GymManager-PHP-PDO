@@ -49,10 +49,7 @@ $hoje = date('Y-m-d');
   <link rel="stylesheet" href="/public/css/index.css">
 </head>
 <body>
-
-  <header>
-    <h1>Academia</h1>
-  </header>
+  <?php require __DIR__ . '/partials/app-header.php'; ?>
 
   <div class="screen">
 

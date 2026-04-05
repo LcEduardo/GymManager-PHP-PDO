@@ -24,10 +24,7 @@ $currentPlanId = $subscription['plan_id'] ?? null;
   <link rel="stylesheet" href="/public/css/form.css">
 </head>
 <body>
-
-  <header>
-    <h1>Academia</h1>
-  </header>
+  <?php require __DIR__ . '/partials/app-header.php'; ?>
 
   <main class="page-center">
     <div class="card">
