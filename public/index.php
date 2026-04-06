@@ -1,5 +1,7 @@
 <?php
 
+use App\Controller\UserController;
+
 if (PHP_SAPI === 'cli-server') {
     $requestedPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
@@ -12,6 +14,19 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = rtrim($uri, '/') ?: '/';
+$method = $_SERVER['REQUEST_METHOD'];
+
+$userController = new UserController();
+
+if ($uri === '/register' && $method === 'GET') {
+    $userController->create();
+    return;
+}
+
+if ($uri === '/register' && $method === 'POST') {
+    $userController->store();
+    return;
+}
 
 $routes = [
     '/' => 'adm.php',
