@@ -2,7 +2,7 @@
 
 PHP application for basic gym member management, including user registration, plan subscriptions, an admin dashboard, a financial view, and PDF export.
 
-The project was built with a focus on learning `PDO`, a simple layered structure (`Domain`, `Repository`, `Infra`), and a gradual evolution from `SQLite` to `PostgreSQL`.
+The project was built with a focus on learning `PDO`, a simple layered structure (`Domain`, `Repository`, `Infra`), and a PostgreSQL-based architecture.
 
 ## Current goal
 
@@ -99,8 +99,7 @@ The compatibility wrapper is kept only to support root-based local serving witho
 
 - `Connection.php`: centralizes PDO connection creation
 - reads variables from the `.env` file
-- supports both `pgsql` and `sqlite`
-- the main project flow is currently prepared for `PostgreSQL`
+- uses `PostgreSQL` as the only supported database
 
 ### `src/Domain`
 
@@ -238,9 +237,8 @@ Create a `.env` file in the project root based on `.env.example`.
 ### Database
 
 ```env
-DB_DRIVER=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=5433
 DB_DATABASE=gym
 DB_USERNAME=gym_user
 DB_PASSWORD=gym_password
