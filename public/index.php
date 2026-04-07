@@ -28,12 +28,19 @@ if ($uri === '/register' && $method === 'POST') {
     return;
 }
 
+if ($uri === '/edit' && $method === 'GET') {
+    $userController->edit();
+    return;
+}
+
+if ($uri === '/update' && $method === 'POST') {
+    $userController->update();
+    return;
+}
+
 $routes = [
     '/' => 'adm.php',
     '/adm' => 'adm.php',
-    '/register' => 'register-user.php',
-    '/edit' => 'edit.php',
-    '/update' => 'update.php',
     '/delete' => 'delete.php',
     '/download' => 'download-pdf.php',
     '/financial' => 'financial.php',

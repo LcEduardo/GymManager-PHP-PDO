@@ -43,7 +43,7 @@ class UserRepository
         }
     }
 
-    public function searchUser(int $id): mixed
+    public function searchUser(int $id): ?User
     {
         $sql = "SELECT * FROM users WHERE id = :id";
         $stmt = $this->connection->prepare($sql);
@@ -51,6 +51,10 @@ class UserRepository
         $stmt->execute();
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return null;
+        }
 
         return $this->formatUser($user);
     }

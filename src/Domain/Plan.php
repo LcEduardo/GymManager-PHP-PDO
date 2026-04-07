@@ -8,10 +8,10 @@ class Plan
     private string $name;
     private float $price;
     private string $description;
-    private int $active;
+    private bool $active;
     private int $durantion_days;
 
-    public function __construct(?int $id, string $name, float $price, string $description, int $active, int $durantion_days)
+    public function __construct(?int $id, string $name, float $price, string $description, bool $active, int $durantion_days)
     {
         $this->id = $id;
         $this->name = $name;
@@ -49,11 +49,11 @@ class Plan
         $this->description = $description;
     }
 
-    public function getActive(): int {
+    public function getActive(): bool {
         return $this->active;
     }
 
-    public function setActive($active): void {
+    public function setActive(bool $active): void {
         $this->active = $active;
     }
 

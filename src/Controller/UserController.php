@@ -11,6 +11,18 @@ use App\Repository\UserRepository;
 
 class UserController
 {
+    private UserRepository $userRepository;
+    private SubscriptionRepository $subscriptionRepository;
+    private PlanRepository $planRepository;
+
+    public function __construct()
+    {
+        $connection = Connection::getConnection();
+        $this->userRepository = new UserRepository($connection);
+        $this->subscriptionRepository = new SubscriptionRepository($connection);
+        $this->planRepository = new PlanRepository($connection);
+    }
+
     public function create(): void
     {
         require dirname(__DIR__, 2) . '/views/users/create.php';
@@ -18,11 +30,6 @@ class UserController
 
     public function store(): void
     {
-        $connection = Connection::getConnection();
-        $userRepository = new UserRepository($connection);
-        $subscriptionRepository = new SubscriptionRepository($connection);
-        $planRepository = new PlanRepository($connection);
-
         $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -36,7 +43,7 @@ class UserController
             return;
         }
 
-        $plan = $planRepository->searchPlan($planName);
+        $plan = $this->planRepository->searchPlan($planName);
 
         if (!$plan) {
             http_response_code(422);
@@ -55,7 +62,7 @@ class UserController
             'S'
         );
 
-        $userRepository->createUser($user);
+        $this->userRepository->createUser($user);
 
         $subscription = new UserSubscription(
             null,
@@ -66,13 +73,86 @@ class UserController
             'pending'
         );
 
-        $result = $subscriptionRepository->createSubscription($subscription);
+        $result = $this->subscriptionRepository->createSubscription($subscription);
 
         if (!$result) {
             http_response_code(500);
             echo 'Erro ao criar assinatura.';
             return;
         }
+
+        header('Location: /');
+    }
+
+    public function edit(): void
+    {
+        $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        if (!$userId) {
+            http_response_code(404);
+            echo 'Usuario nao encontrado.';
+            return;
+        }
+
+        $user = $this->userRepository->searchUser($userId);
+
+        if (!$user) {
+            http_response_code(404);
+            echo 'Usuario nao encontrado.';
+            return;
+        }
+
+        $subscription = $this->subscriptionRepository->findByUserId($user->id());
+        $currentPlanId = isset($subscription['plan_id']) ? (int) $subscription['plan_id'] : null;
+        $plans = $this->planRepository->getAllPlans();
+
+        require dirname(__DIR__, 2) . '/views/users/edit.php';
+    }
+
+    public function update(): void
+    {
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
+        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        $birthDate = filter_input(INPUT_POST, 'birthdate', FILTER_DEFAULT);
+        $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_SPECIAL_CHARS);
+        $planId = filter_input(INPUT_POST, 'plan_id', FILTER_VALIDATE_INT);
+
+        if (!$id || !$name || !$email || !$planId) {
+            http_response_code(422);
+            echo 'Dados invalidos.';
+            return;
+        }
+
+        $user = $this->userRepository->searchUser($id);
+
+        if (!$user) {
+            http_response_code(404);
+            echo 'Usuario nao encontrado.';
+            return;
+        }
+
+        $plan = $this->planRepository->findById($planId);
+
+        if (!$plan) {
+            http_response_code(422);
+            echo 'Plano invalido.';
+            return;
+        }
+
+        $updatedUser = new User(
+            $user->id(),
+            $name,
+            $email,
+            $user->password(),
+            $user->createdAt(),
+            $birthDate ?: null,
+            $phone ?: null,
+            $user->status()
+        );
+
+        $this->userRepository->updateUser($updatedUser);
+        $this->subscriptionRepository->updatePlan($id, $plan->getId());
 
         header('Location: /');
     }
