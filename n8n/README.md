@@ -4,6 +4,44 @@ This project uses n8n to keep subscription cycles in sync with the database hist
 
 Each row in `users_plans` represents one billing cycle. A payment should settle the current cycle and queue the next one instead of overwriting the same row.
 
+## Administrative access update
+
+The project now has a dedicated administrator table named `adms` to control who can access the management area.
+
+What was added:
+
+- a new SQL file named `adms.sql`
+- table `adms` with the columns `id`, `name`, `email`, and `password`
+- a PHP seed script at `scripts/seed-admin.php`
+- an initial administrator seed with:
+- name: `Administrador Principal`
+- email: `admin@gymmanager.local`
+- password: `admin123` (change it after the first login in a real environment)
+- a login screen shown before the dashboard
+- session-based protection so the dashboard and management routes require authenticated admin access
+
+### Password hash strategy
+
+The administrator password seed is now generated in PHP using `PDO::prepare()` and the correct constant `PASSWORD_ARGON2ID`:
+
+```php
+$statement = $connection->prepare($sql);
+$statement->bindValue(':password', password_hash($password, PASSWORD_ARGON2ID), PDO::PARAM_STR);
+$statement->execute();
+```
+
+Why `PASSWORD_ARGON2ID` is safer than `PASSWORD_DEFAULT` in this case:
+
+- `PASSWORD_ARGON2ID` explicitly uses Argon2id, which is memory-hard and makes brute-force attacks more expensive
+- `PASSWORD_DEFAULT` depends on the PHP version and environment, so the algorithm can vary over time
+- in many environments, `PASSWORD_DEFAULT` may still resolve to bcrypt, which is good, but does not add the same memory-cost protection as Argon2id
+- by choosing `PASSWORD_ARGON2ID` directly, the project keeps a predictable and stronger password policy for administrator access
+
+Important:
+
+- if the database volume already existed before this change, run `adms.sql` to create the table and then execute `php scripts/seed-admin.php` to insert the initial administrator
+- use `password_verify()` to validate the stored hashes during login
+
 ## Importable workflows
 
 The folder `n8n/workflows` contains ready-to-import workflow JSON files:

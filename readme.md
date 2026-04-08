@@ -4,6 +4,8 @@ PHP application for basic gym member management, including user registration, pl
 
 The project was built with a focus on learning `PDO`, a simple layered structure (`Domain`, `Repository`, `Infra`), and a PostgreSQL-based architecture.
 
+It now also includes administrator authentication backed by the `adms` table, so the dashboard is protected behind a login screen.
+
 ## Current goal
 
 At this stage, the system already allows you to:
@@ -16,6 +18,7 @@ At this stage, the system already allows you to:
 - generate a PDF with the user list
 - view financial indicators and subscription statuses
 - integrate payment-cycle automation with `n8n`
+- authenticate administrator access before opening the dashboard
 
 ## Stack
 
@@ -123,6 +126,30 @@ Responsible for database communication:
 
 ## Main application flow
 
+### Administrative login
+
+When the application is opened:
+
+1. the route `/` shows the administrator login form
+2. the submitted e-mail is searched in the `adms` table
+3. the password is validated with `password_verify()`
+4. a PHP session is created for the authenticated administrator
+5. the dashboard at `/adm` is released only after successful login
+
+The administrator table bootstrap lives in `adms.sql`, and the initial admin insert is executed by `scripts/seed-admin.php` using `PDO::prepare()` and `password_hash()`.
+
+- name: `Administrador Principal`
+- email: `admin@gymmanager.local`
+- password: `admin123` for local bootstrap only
+
+The password hash was generated with `PASSWORD_ARGON2ID` instead of `PASSWORD_DEFAULT`.
+
+Why this choice improves security:
+
+- `PASSWORD_ARGON2ID` explicitly uses Argon2id
+- Argon2id is memory-hard, which increases brute-force cost
+- `PASSWORD_DEFAULT` intentionally varies according to the PHP runtime, so the algorithm is not fixed across environments
+
 ### User registration
 
 When registering a user:
@@ -164,7 +191,8 @@ The application routes requests through `public/index.php`. The root `index.php`
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `adm.php` | dashboard |
+| `/` | `views/auth/login.php` | administrator login screen |
+| `/login` | `views/auth/login.php` | administrator login screen |
 | `/adm` | `adm.php` | dashboard |
 | `/register` | `register-user.php` | user registration |
 | `/edit` | `edit.php` | edit form |
@@ -172,6 +200,7 @@ The application routes requests through `public/index.php`. The root `index.php`
 | `/delete` | `delete.php` | delete user |
 | `/download` | `download-pdf.php` | PDF export |
 | `/financial` | `financial.php` | financial view |
+| `/logout` | `src/Controller/AuthController.php` | ends administrator session |
 
 ## Database
 
@@ -219,6 +248,15 @@ Currently accepted statuses:
 - `pending`
 - `paid`
 - `vencido`
+
+### `adms`
+
+Stores administrator credentials used to access the system:
+
+- `id`
+- `name`
+- `email`
+- `password`
 
 ## Initial plans
 
@@ -283,6 +321,14 @@ This starts:
 - n8n
 
 On the first startup, PostgreSQL automatically runs `init.sql`.
+
+Docker now also mounts `adms.sql` into the PostgreSQL initialization directory so the administrator table is created on a fresh database volume.
+
+After the table exists, run the admin seed script:
+
+```bash
+php scripts/seed-admin.php
+```
 
 ### 4. Run the PHP server
 

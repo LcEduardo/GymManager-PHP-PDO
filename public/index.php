@@ -1,6 +1,9 @@
 <?php
 
+session_start();
+
 use App\Controller\UserController;
+use App\Controller\AuthController;
 
 if (PHP_SAPI === 'cli-server') {
     $requestedPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -17,6 +20,33 @@ $uri = rtrim($uri, '/') ?: '/';
 $method = $_SERVER['REQUEST_METHOD'];
 
 $userController = new UserController();
+$authController = new AuthController();
+$isAuthenticated = isset($_SESSION['admin']);
+
+if (($uri === '/' || $uri === '/login') && $method === 'GET') {
+    if ($isAuthenticated) {
+        header('Location: /adm');
+        return;
+    }
+
+    $authController->login();
+    return;
+}
+
+if ($uri === '/login' && $method === 'POST') {
+    $authController->authenticate();
+    return;
+}
+
+if ($uri === '/logout' && $method === 'GET') {
+    $authController->logout();
+    return;
+}
+
+if (!$isAuthenticated) {
+    header('Location: /login');
+    return;
+}
 
 if ($uri === '/register' && $method === 'GET') {
     $userController->create();
@@ -39,7 +69,6 @@ if ($uri === '/update' && $method === 'POST') {
 }
 
 $routes = [
-    '/' => 'adm.php',
     '/adm' => 'adm.php',
     '/delete' => 'delete.php',
     '/download' => 'download-pdf.php',

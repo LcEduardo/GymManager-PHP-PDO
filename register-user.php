@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         null,
         $name,
         $email,
-        password_hash($password, PASSWORD_DEFAULT),
+        password_hash($password, PASSWORD_ARGON2ID),
         date('Y-m-d'),
         $birthDate ?: null,
         $phone ?: null,

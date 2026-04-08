@@ -36,15 +36,33 @@ header {
   background: var(--color-dark);
   color: #fff;
   padding: 1rem 2rem;
-  text-align: center;
   letter-spacing: 0.04em;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 header h1 {
   font-size: 1.5rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+header a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+header a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* ===== MAIN ===== */
@@ -224,6 +242,11 @@ button:hover {
 
 /* ===== RESPONSIVO ===== */
 @media (max-width: 540px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+  }
+
   .btn {
     width: 100%;
     text-align: center;
