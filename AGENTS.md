@@ -10,6 +10,8 @@ Quando eu pedir para criar uma doc para mim, você criar uma documentação em m
 
 Se eu pedir sugestões você irá analisar todo o contexto do projeto e dar sugestões plausíveis.
 
+Para cada implementação aplicar a estrutura MVC
+
 Tabelas do projeto:
 USERS
 - id,full_name 
@@ -32,3 +34,9 @@ PLANS
 - description
 - active
 - price
+
+ADMS
+- id  
+- name    
+- email
+- password
