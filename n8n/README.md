@@ -10,9 +10,8 @@ The project now has a dedicated administrator table named `adms` to control who 
 
 What was added:
 
-- a new SQL file named `adms.sql`
+- administrator bootstrap consolidated in `init.sql`
 - table `adms` with the columns `id`, `name`, `email`, and `password`
-- a PHP seed script at `scripts/seed-admin.php`
 - an initial administrator seed with:
 - name: `Administrador Principal`
 - email: `admin@gymmanager.local`
@@ -39,7 +38,7 @@ Why `PASSWORD_ARGON2ID` is safer than `PASSWORD_DEFAULT` in this case:
 
 Important:
 
-- if the database volume already existed before this change, run `adms.sql` to create the table and then execute `php scripts/seed-admin.php` to insert the initial administrator
+- if the database volume already existed before this change, recreate the PostgreSQL volume or run the `adms` table creation and initial administrator insert that now live in `init.sql`
 - use `password_verify()` to validate the stored hashes during login
 
 ## Importable workflows

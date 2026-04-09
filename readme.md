@@ -136,7 +136,7 @@ When the application is opened:
 4. a PHP session is created for the authenticated administrator
 5. the dashboard at `/adm` is released only after successful login
 
-The administrator table bootstrap lives in `adms.sql`, and the initial admin insert is executed by `scripts/seed-admin.php` using `PDO::prepare()` and `password_hash()`.
+The administrator table bootstrap and the initial admin insert now live directly in `init.sql`.
 
 - name: `Administrador Principal`
 - email: `admin@gymmanager.local`
@@ -320,15 +320,7 @@ This starts:
 - PostgreSQL
 - n8n
 
-On the first startup, PostgreSQL automatically runs `init.sql`.
-
-Docker now also mounts `adms.sql` into the PostgreSQL initialization directory so the administrator table is created on a fresh database volume.
-
-After the table exists, run the admin seed script:
-
-```bash
-php scripts/seed-admin.php
-```
+On the first startup, PostgreSQL automatically runs `init.sql`, creating the application tables, the `adms` table, and the initial administrator record.
 
 ### 4. Run the PHP server
 
