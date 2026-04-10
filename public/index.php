@@ -68,10 +68,14 @@ if ($uri === '/update' && $method === 'POST') {
     return;
 }
 
+if ($uri === '/download' && $method === 'GET') {
+    $userController->downloadPdf();
+    return;
+}
+
 $routes = [
     '/adm' => 'adm.php',
     '/delete' => 'delete.php',
-    '/download' => 'download-pdf.php',
     '/financial' => 'financial.php',
 ];
 

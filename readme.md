@@ -1,24 +1,19 @@
-# Gym Management Project with PDO
+# Gym Management Project
 
-PHP application for basic gym member management, including user registration, plan subscriptions, an admin dashboard, a financial view, and PDF export.
+Aplicação PHP para gerenciamento de academia com cadastro de alunos, controle de planos, autenticação administrativa, dashboard financeiro, exportação em PDF e automações com `n8n`.
 
-The project was built with a focus on learning `PDO`, a simple layered structure (`Domain`, `Repository`, `Infra`), and a PostgreSQL-based architecture.
+O projeto utiliza `PDO` com PostgreSQL e está sendo organizado em uma estrutura MVC, mantendo alguns arquivos legados na raiz enquanto a migração é concluída.
 
-It now also includes administrator authentication backed by the `adms` table, so the dashboard is protected behind a login screen.
+## Funcionalidades atuais
 
-## Current goal
-
-At this stage, the system already allows you to:
-
-- register members
-- list members in the admin dashboard
-- edit member data
-- change the current subscription plan
-- delete a member
-- generate a PDF with the user list
-- view financial indicators and subscription statuses
-- integrate payment-cycle automation with `n8n`
-- authenticate administrator access before opening the dashboard
+- login administrativo com sessão
+- cadastro de alunos
+- listagem de alunos no dashboard
+- edição de dados e plano do aluno
+- exclusão de aluno
+- indicadores financeiros
+- exportação de relatório em PDF
+- automações de ciclos de pagamento com `n8n`
 
 ## Stack
 
@@ -28,187 +23,163 @@ At this stage, the system already allows you to:
 - Docker Compose
 - n8n
 - Dompdf
-- Composer with `PSR-4` autoload
+- Composer com autoload `PSR-4`
 
 ## Project structure
 
+O projeto segue uma organização baseada em MVC, com parte do fluxo já centralizada em controllers e views, e alguns endpoints legados ainda carregados a partir da raiz:
+
 ```text
 .
-├── css/                       # original style files
-├── img/                       # original UI icons
-├── n8n/                       # documentation and importable workflows
-├── public/
-│   ├── css/                   # public static assets
-│   ├── img/                   # public images and icons
-│   └── index.php              # recommended front controller
-├── src/
-│   ├── Domain/                # business entities
-│   ├── Infra/                 # database connection
-│   └── Repository/            # data access layer
-├── adm.php                    # main dashboard
-├── register-user.php          # user registration
-├── edit.php                   # edit form
-├── update.php                 # update persistence
-├── delete.php                 # user deletion
-├── financial.php              # financial screen
-├── pdf.php                    # PDF HTML template
-├── download-pdf.php           # PDF generation
-├── index.php                  # compatibility entrypoint for root-based serving
-├── init.sql                   # initial database setup
-├── docker-compose.yml         # PostgreSQL + n8n
-└── .env.example               # example environment variables
+|-- public/
+|   |-- css/                    # arquivos CSS públicos
+|   |-- img/                    # imagens e ícones públicos
+|   `-- index.php               # front controller e roteador principal
+|-- src/
+|   |-- Controller/             # controllers da aplicação
+|   |-- Domain/                 # entidades de domínio
+|   |-- Infra/                  # conexão e infraestrutura
+|   `-- Repository/             # acesso a dados com PDO
+|-- views/
+|   |-- auth/                   # telas de autenticação
+|   `-- users/                  # telas de usuário
+|-- partials/                   # trechos reutilizáveis das views
+|-- n8n/
+|   `-- workflows/              # fluxos importáveis do n8n
+|-- adm.php                     # dashboard legado
+|-- financial.php               # tela financeira legada
+|-- delete.php                  # ação legada de exclusão
+|-- download-pdf.php            # geração de PDF
+|-- pdf.php                     # template HTML do PDF
+|-- index.php                   # compatibilidade para servir pela raiz
+|-- init.sql                    # schema inicial + seed do admin master
+|-- docker-compose.yml          # PostgreSQL + n8n
+`-- README.md                   # documentação principal do projeto
 ```
 
-## Public entrypoint and asset strategy
+## MVC atual
 
-The application now includes a dedicated front controller at `public/index.php`.
+### Model
 
-Using a `public/` entrypoint is a good practice in PHP projects because it keeps only public files inside the web root. Files such as `src/`, `vendor/`, `.env`, and SQL scripts stay outside direct web access. It also gives the application a single bootstrap point, so Composer autoload is loaded once instead of being repeated in every routed page.
+A camada de dados e regras de negócio está distribuída em:
 
-### Approaches adopted
+- `src/Domain`: entidades como `User`, `Plan` e `UserSubscription`
+- `src/Repository`: consultas e persistência com PDO
+- `src/Infra`: conexão com banco
 
-- `public/index.php` is the main router/front controller
-- Composer autoload is required once in `public/index.php`
-- routed files such as `adm.php`, `register-user.php`, `financial.php`, `edit.php`, `update.php`, `delete.php`, `download-pdf.php`, and `pdf.php` no longer load `vendor/autoload.php` individually
-- the root `index.php` was preserved as a compatibility wrapper for environments that still serve the repository root
-- static assets are exposed through `public/css` and `public/img`
-- the HTML currently references assets with `/public/...` paths so the app works in the existing compatibility setup
+### View
 
-### Why keep both `index.php` files
+As telas renderizadas ficam principalmente em:
 
-The cleanest setup is to point the web server document root to `public/` and use only `public/index.php`.
+- `views/auth/login.php`
+- `views/users/create.php`
+- `views/users/edit.php`
+- `partials/app-header.php`
+- `public/css/*.css`
 
-However, many local development setups still run the built-in server from the project root. To avoid breaking that workflow, the root `index.php` forwards dynamic requests to `public/index.php`. This keeps routing centralized while maintaining backward compatibility.
+### Controller
 
-### PHP built-in server behavior
+Os controllers recebem a requisição, validam os dados e chamam os repositórios:
 
-When using `php -S`, static files must be served directly instead of being handled by the router. Because of that, both entrypoints check whether the requested path matches a real file. If it does, PHP serves the file directly. Otherwise, the request continues through the router.
+- `src/Controller/AuthController.php`
+- `src/Controller/UserController.php`
 
-This is what prevents asset URLs such as `/public/css/style.css` and `/public/img/icons/edit.png` from returning `404` during local development.
+### Observação importante
 
-### Recommended direction
+Embora a base MVC já exista, o projeto ainda está em transição. Hoje o `public/index.php` já roteia login, cadastro, edição e atualização via controller, mas algumas rotas ainda carregam arquivos legados da raiz, como:
 
-For a production-like setup, configure the web server to use `public/` as the document root. That is the preferred architecture because:
+- `adm.php`
+- `financial.php`
+- `delete.php`
+- `download-pdf.php`
 
-- it reduces accidental exposure of internal files
-- it keeps static files and the front controller in the expected public location
-- it simplifies deployment and web server rules
+## Dependencias do controller
 
-The compatibility wrapper is kept only to support root-based local serving without breaking the current workflow.
+Nem toda dependencia usada em uma acao precisa ficar no `__construct()` do controller.
 
-## Current architecture
+Regra pratica adotada no projeto:
 
-### `src/Infra`
+- dependencias usadas por varias acoes do controller podem ficar no construtor
+- dependencias usadas apenas em uma acao especifica podem ser instanciadas dentro do proprio metodo
 
-- `Connection.php`: centralizes PDO connection creation
-- reads variables from the `.env` file
-- uses `PostgreSQL` as the only supported database
+Exemplo com o PDF:
 
-### `src/Domain`
+- `UserRepository`, `PlanRepository` e `SubscriptionRepository` fazem sentido no construtor do `UserController`, porque sao usados em varios fluxos como cadastro, edicao e atualizacao
+- `Dompdf` so e necessario na geracao do PDF, entao pode ser criado apenas em `downloadPdf()`
 
-Represents the business objects of the application:
+Essa separacao reduz acoplamento, evita inicializacao desnecessaria em rotas que nao geram PDF e deixa mais claro quais dependencias pertencem ao controller inteiro e quais pertencem apenas a uma funcionalidade especifica.
 
-- `User`
-- `Plan`
-- `UserSubscription`
-- `Professional`
+## Fluxo principal
 
-Note: the `Professional` entity already exists in the codebase, but it is not yet integrated into the main application flow or `init.sql`.
+### Login administrativo
 
-### `src/Repository`
+1. A rota `/` ou `/login` exibe a tela de login.
+2. O e-mail informado é buscado na tabela `adms`.
+3. A senha é validada com `password_verify()`.
+4. Uma sessão de administrador é criada.
+5. As rotas protegidas passam a exigir autenticação.
 
-Responsible for database communication:
+Administrador inicial:
 
-- `UserRepository`
-- `PlanRepository`
-- `SubscriptionRepository`
-- `ProfessionalRepository`
+- nome: `Administrador Principal`
+- e-mail: `admin@gymmanager.local`
+- senha: `admin123`
 
-## Main application flow
+Esse usuário master é criado diretamente pelo `init.sql` na primeira inicialização do banco.
 
-### Administrative login
+### Cadastro de usuário
 
-When the application is opened:
-
-1. the route `/` shows the administrator login form
-2. the submitted e-mail is searched in the `adms` table
-3. the password is validated with `password_verify()`
-4. a PHP session is created for the authenticated administrator
-5. the dashboard at `/adm` is released only after successful login
-
-The administrator table bootstrap and the initial admin insert now live directly in `init.sql`.
-
-- name: `Administrador Principal`
-- email: `admin@gymmanager.local`
-- password: `admin123` for local bootstrap only
-
-The password hash was generated with `PASSWORD_ARGON2ID` instead of `PASSWORD_DEFAULT`.
-
-Why this choice improves security:
-
-- `PASSWORD_ARGON2ID` explicitly uses Argon2id
-- Argon2id is memory-hard, which increases brute-force cost
-- `PASSWORD_DEFAULT` intentionally varies according to the PHP runtime, so the algorithm is not fixed across environments
-
-### User registration
-
-When registering a user:
-
-1. form data is received in `register-user.php`
-2. the password is stored with `password_hash`
-3. the user is saved in the `users` table
-4. the selected plan is fetched from the `plans` table
-5. an initial cycle is created in `users_plans` with status `pending`
+1. O formulário é exibido por `UserController::create()`.
+2. O envio `POST /register` é tratado por `UserController::store()`.
+3. A senha do aluno é armazenada com hash.
+4. O usuário é salvo na tabela `users`.
+5. Um ciclo inicial é criado em `users_plans`.
 
 ### Dashboard
 
-The `adm.php` dashboard displays:
+O dashboard administrativo exibe:
 
-- total active users
-- monthly revenue based on `paid` subscriptions
-- number of users on the premium plan
-- number of subscriptions that are overdue or due today
-- a table with all registered users
+- total de alunos ativos
+- receita mensal
+- quantidade de usuários no plano premium
+- assinaturas vencidas ou vencendo
+- tabela com usuários cadastrados
 
-### Financial
+### Financeiro
 
-The `financial.php` screen lists subscriptions filtered by status:
+A tela financeira trabalha com os status:
 
-- `todos`
 - `paid`
 - `pending`
 - `vencido`
 
-This view combines users, plans, and subscription cycles to show the current state of each charge.
+## Rotas atuais
 
-### PDF
-
-`download-pdf.php` uses `Dompdf` to generate a PDF report with the user list.
-
-## Available routes
-
-The application routes requests through `public/index.php`. The root `index.php` currently works as a compatibility wrapper for root-based local serving.
-
-| Route | File | Purpose |
+| Rota | Método | Responsável |
 |---|---|---|
-| `/` | `views/auth/login.php` | administrator login screen |
-| `/login` | `views/auth/login.php` | administrator login screen |
-| `/adm` | `adm.php` | dashboard |
-| `/register` | `register-user.php` | user registration |
-| `/edit` | `edit.php` | edit form |
-| `/update` | `update.php` | update data |
-| `/delete` | `delete.php` | delete user |
-| `/download` | `download-pdf.php` | PDF export |
-| `/financial` | `financial.php` | financial view |
-| `/logout` | `src/Controller/AuthController.php` | ends administrator session |
+| `/` | `GET` | login administrativo |
+| `/login` | `GET` | login administrativo |
+| `/login` | `POST` | autenticação do administrador |
+| `/logout` | `GET` | logout |
+| `/adm` | `GET` | dashboard legado |
+| `/register` | `GET` | `UserController::create()` |
+| `/register` | `POST` | `UserController::store()` |
+| `/edit` | `GET` | `UserController::edit()` |
+| `/update` | `POST` | `UserController::update()` |
+| `/delete` | `GET` | exclusão legada |
+| `/financial` | `GET` | tela financeira legada |
+| `/download` | `GET` | exportação de PDF |
 
-## Database
+## Banco de dados
 
-### Tables created in `init.sql`
+O `init.sql` cria as tabelas:
 
-#### `users`
+- `users`
+- `plans`
+- `users_plans`
+- `adms`
 
-Stores member data:
+### `users`
 
 - `id`
 - `full_name`
@@ -221,8 +192,6 @@ Stores member data:
 
 ### `plans`
 
-Stores available plans:
-
 - `id`
 - `name`
 - `durantio_days`
@@ -230,11 +199,7 @@ Stores available plans:
 - `active`
 - `price`
 
-Note: the column name is currently `durantio_days` in SQL. This documentation keeps that name because it matches the current database definition.
-
 ### `users_plans`
-
-Represents each member subscription cycle:
 
 - `id`
 - `user_id`
@@ -243,7 +208,7 @@ Represents each member subscription cycle:
 - `end_date`
 - `payment_status`
 
-Currently accepted statuses:
+Status aceitos:
 
 - `pending`
 - `paid`
@@ -251,28 +216,47 @@ Currently accepted statuses:
 
 ### `adms`
 
-Stores administrator credentials used to access the system:
-
 - `id`
 - `name`
 - `email`
 - `password`
 
-## Initial plans
+## n8n
 
-`init.sql` already seeds the following plans:
+O projeto usa `n8n` para automatizar os ciclos de pagamento e manter o histórico de assinaturas consistente.
 
-- `Basic`
-- `Premium`
-- `VIP`
+Fluxos disponíveis em `n8n/workflows`:
 
-In the current UI form, only `Basic` and `Premium` are available for selection.
+- `gymGatewayPaid.json`
+- `payment-received-webhook.json`
+- `generate-next-cycle-cron.json`
+- `expire-subscriptions-cron.json`
 
-## Environment variables
+### Comportamento esperado
 
-Create a `.env` file in the project root based on `.env.example`.
+- quando um ciclo é pago, ele pode ser marcado como `paid`
+- o próximo ciclo pode ser criado automaticamente como `pending`
+- ciclos pendentes vencidos podem ser marcados como `vencido`
 
-### Database
+Essas automações impactam diretamente:
+
+- receita mensal do dashboard
+- contador de vencimentos
+- filtros da tela financeira
+
+### Como importar
+
+1. Suba os containers com `docker compose up -d`.
+2. Acesse o n8n em `http://localhost:5678`.
+3. Crie uma credencial Postgres apontando para o mesmo banco da aplicação.
+4. Importe os arquivos JSON de `n8n/workflows`.
+5. Associe a credencial nos nós Postgres e ative os fluxos.
+
+## Variáveis de ambiente
+
+Crie o arquivo `.env` com base em `.env.example`.
+
+### Banco
 
 ```env
 DB_HOST=127.0.0.1
@@ -297,95 +281,58 @@ N8N_BASIC_AUTH_PASSWORD=admin123
 N8N_ENCRYPTION_KEY=change_this_to_a_long_random_string
 ```
 
-## How to run the project
+## Como executar
 
-### 1. Install dependencies
+### 1. Instalar dependências
 
 ```bash
 composer install
 ```
 
-### 2. Create the environment file
+### 2. Criar o `.env`
 
-Use `.env.example` as the base to create `.env`.
+Use `.env.example` como base.
 
-### 3. Start the containers
+### 3. Subir os containers
 
 ```bash
 docker compose up -d
 ```
 
-This starts:
+Na primeira inicialização, o PostgreSQL executa o `init.sql`, criando schema, planos iniciais e o administrador master.
 
-- PostgreSQL
-- n8n
+Se o volume do banco já existia antes de alguma alteração no `init.sql`, recrie o volume ou aplique manualmente as mudanças no banco.
 
-On the first startup, PostgreSQL automatically runs `init.sql`, creating the application tables, the `adms` table, and the initial administrator record.
-
-### 4. Run the PHP server
-
-Recommended with the PHP built-in server:
+### 4. Iniciar o servidor PHP
 
 ```bash
 php -S localhost:8000 index.php
 ```
 
-Then access:
+### 5. Acessar
 
-- application: `http://localhost:8000`
+- aplicação: `http://localhost:8000`
 - n8n: `http://localhost:5678`
 
-## n8n
+## Estado atual do projeto
 
-The project uses `n8n` to automate payment-cycle history.
+### O que já está consistente
 
-Ready-to-import workflows are available in `n8n/workflows`:
+- conexão PDO centralizada
+- autenticação administrativa com sessão
+- base MVC iniciada
+- repositórios com prepared statements
+- integração com PostgreSQL via Docker
+- automações n8n separadas em workflows importáveis
 
-- `gymGatewayPaid.json`
-- `payment-received-webhook.json`
-- `generate-next-cycle-cron.json`
-- `expire-subscriptions-cron.json`
+### O que ainda pode evoluir
 
-### Expected behavior
+- concluir a migração das rotas legadas para controllers e views
+- padronizar encoding UTF-8 em todos os arquivos
+- expor planos dinamicamente nas telas
+- adicionar testes automatizados
+- ampliar regras de validação
 
-- when a cycle is paid, it can be marked as `paid`
-- the next cycle can be created automatically as `pending`
-- overdue pending cycles can be marked as `vencido`
+## Resumo
 
-This directly impacts:
-
-- dashboard monthly revenue
-- overdue counter
-- financial screen filters
-
-## Current project status
-
-### What is already consistent
-
-- centralized PDO connection
-- basic separation between domain, infrastructure, and data access
-- use of prepared statements in repositories
-- password hashing during registration
-- PostgreSQL integration through Docker
-- `n8n` automations designed for recurring cycles
-
-### Areas still evolving
-
-- there is no automated test suite yet
-- the `Professional` entity is not connected to the main schema yet
-- some files still contain text-encoding issues
-- the `VIP` plan exists in the database but is not yet exposed in the current form
-- the project still uses a simple custom router instead of a framework
-
-## Possible next steps
-
-- standardize UTF-8 encoding across all files
-- add domain validations and clearer error messages
-- include screens and tables for professionals
-- expose all active plans dynamically from the database
-- create tests for repositories and main flows
-- improve separation between presentation and business rules
-
-## Summary
-
-This project already works as a real base for gym member administration, including registration, subscription management, financial tracking, PDF export, and external automation via `n8n`. It is still evolving, but it already has a solid structure for continued growth in an organized way.
+O projeto já funciona como uma base real de gestão de academia e agora possui uma documentação única na raiz, alinhada com a estrutura atual e com a transição para MVC.

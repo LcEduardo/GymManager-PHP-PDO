@@ -8,6 +8,7 @@ use App\Infra\Connection;
 use App\Repository\PlanRepository;
 use App\Repository\SubscriptionRepository;
 use App\Repository\UserRepository;
+use Dompdf\Dompdf;
 
 class UserController
 {
@@ -155,5 +156,21 @@ class UserController
         $this->subscriptionRepository->updatePlan($id, $plan->getId());
 
         header('Location: /');
+    }
+
+    public function downloadPdf(): void {
+
+        $dompdf = new Dompdf();
+
+        $users = $this->userRepository->getAllUsers();
+
+        ob_start();
+        require dirname(__DIR__, 2) . '/views/users/pdf.php';
+        $html = ob_get_clean();
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+        $dompdf->stream('usuarios.pdf');       
     }
 }
