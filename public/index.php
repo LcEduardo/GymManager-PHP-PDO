@@ -4,6 +4,8 @@ session_start();
 
 use App\Controller\UserController;
 use App\Controller\AuthController;
+use App\Controller\FinancialController;
+use App\Controller\DashboardController;
 
 if (PHP_SAPI === 'cli-server') {
     $requestedPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -21,6 +23,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 $userController = new UserController();
 $authController = new AuthController();
+$financialController = new FinancialController();
+$dashboardController = new DashboardController();
+
 $isAuthenticated = isset($_SESSION['admin']);
 
 if (($uri === '/' || $uri === '/login') && $method === 'GET') {
@@ -73,14 +78,26 @@ if ($uri === '/download' && $method === 'GET') {
     return;
 }
 
-$routes = [
-    '/adm' => 'adm.php',
-    '/delete' => 'delete.php',
-    '/financial' => 'financial.php',
-];
+if ($uri === '/delete' && $method === 'GET') {
+    $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-if (array_key_exists($uri, $routes)) {
-    require dirname(__DIR__) . '/' . $routes[$uri];
+    if (!$userId) {
+        http_response_code(404);
+        echo '<h1>404 - Usuario nao encontrado</h1>';
+        return;
+    }
+
+    $userController->destroy();
+    return;
+}
+
+if ($uri === '/financial' && $method === 'GET') {
+    $financialController->index();
+    return;
+}
+
+if ($uri === '/adm' && $method === 'GET') {
+    $dashboardController->index();
     return;
 }
 

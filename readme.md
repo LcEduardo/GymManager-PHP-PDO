@@ -2,7 +2,7 @@
 
 Aplicação PHP para gerenciamento de academia com cadastro de alunos, controle de planos, autenticação administrativa, dashboard financeiro, exportação em PDF e automações com `n8n`.
 
-O projeto utiliza `PDO` com PostgreSQL e está sendo organizado em uma estrutura MVC, mantendo alguns arquivos legados na raiz enquanto a migração é concluída.
+O projeto utiliza `PDO` com PostgreSQL e hoje já segue o padrão MVC no fluxo principal da aplicação. Os arquivos antigos foram mantidos em `legacy/` apenas para estudo e comparação de evolução.
 
 ## Funcionalidades atuais
 
@@ -27,7 +27,7 @@ O projeto utiliza `PDO` com PostgreSQL e está sendo organizado em uma estrutura
 
 ## Project structure
 
-O projeto segue uma organização baseada em MVC, com parte do fluxo já centralizada em controllers e views, e alguns endpoints legados ainda carregados a partir da raiz:
+O projeto segue uma organização baseada em MVC, com front controller em `public/index.php`, controllers em `src/Controller`, views em `views` e exemplos antigos separados em `legacy/`:
 
 ```text
 .
@@ -42,15 +42,13 @@ O projeto segue uma organização baseada em MVC, com parte do fluxo já central
 |   `-- Repository/             # acesso a dados com PDO
 |-- views/
 |   |-- auth/                   # telas de autenticação
+|   |-- dashboard/              # view do dashboard
+|   |-- financial/              # view do financeiro
 |   `-- users/                  # telas de usuário
 |-- partials/                   # trechos reutilizáveis das views
 |-- n8n/
 |   `-- workflows/              # fluxos importáveis do n8n
-|-- adm.php                     # dashboard legado
-|-- financial.php               # tela financeira legada
-|-- delete.php                  # ação legada de exclusão
-|-- download-pdf.php            # geração de PDF
-|-- pdf.php                     # template HTML do PDF
+|-- legacy/                     # arquivos antigos preservados para estudo
 |-- index.php                   # compatibilidade para servir pela raiz
 |-- init.sql                    # schema inicial + seed do admin master
 |-- docker-compose.yml          # PostgreSQL + n8n
@@ -72,8 +70,11 @@ A camada de dados e regras de negócio está distribuída em:
 As telas renderizadas ficam principalmente em:
 
 - `views/auth/login.php`
+- `views/dashboard/index.php`
+- `views/financial/index.php`
 - `views/users/create.php`
 - `views/users/edit.php`
+- `views/users/pdf.php`
 - `partials/app-header.php`
 - `public/css/*.css`
 
@@ -82,30 +83,29 @@ As telas renderizadas ficam principalmente em:
 Os controllers recebem a requisição, validam os dados e chamam os repositórios:
 
 - `src/Controller/AuthController.php`
+- `src/Controller/DashboardController.php`
+- `src/Controller/FinancialController.php`
 - `src/Controller/UserController.php`
 
 ### Observação importante
 
-Embora a base MVC já exista, o projeto ainda está em transição. Hoje o `public/index.php` já roteia login, cadastro, edição e atualização via controller, mas algumas rotas ainda carregam arquivos legados da raiz, como:
+O fluxo principal já está centralizado em MVC. O arquivo [public/index.php](C:\Users\LucasEduardo\Desktop\php\projeto_pdo\public\index.php) funciona como front controller, distribui as rotas para os controllers e mantém a aplicação protegida por sessão.
 
-- `adm.php`
-- `financial.php`
-- `delete.php`
-- `download-pdf.php`
+Os arquivos antigos foram movidos para `legacy/` somente para estudo. Eles não fazem mais parte do fluxo ativo da aplicação.
 
 ## Dependencias do controller
 
-Nem toda dependencia usada em uma acao precisa ficar no `__construct()` do controller.
+Nem toda dependencia usada em uma ação precisa ficar no `__construct()` do controller.
 
 Regra pratica adotada no projeto:
 
-- dependencias usadas por varias acoes do controller podem ficar no construtor
-- dependencias usadas apenas em uma acao especifica podem ser instanciadas dentro do proprio metodo
+- dependencias usadas por varias ações do controller podem ficar no construtor
+- dependencias usadas apenas em uma ação especifica podem ser instanciadas dentro do proprio método
 
 Exemplo com o PDF:
 
-- `UserRepository`, `PlanRepository` e `SubscriptionRepository` fazem sentido no construtor do `UserController`, porque sao usados em varios fluxos como cadastro, edicao e atualizacao
-- `Dompdf` so e necessario na geracao do PDF, entao pode ser criado apenas em `downloadPdf()`
+- `UserRepository`, `PlanRepository` e `SubscriptionRepository` fazem sentido no construtor do `UserController`, porque são usados em vários fluxos como cadastro, edicão e atualização
+- `Dompdf` so é necessário na geração do PDF, então pode ser criado apenas em `downloadPdf()`
 
 Essa separacao reduz acoplamento, evita inicializacao desnecessaria em rotas que nao geram PDF e deixa mais claro quais dependencias pertencem ao controller inteiro e quais pertencem apenas a uma funcionalidade especifica.
 
@@ -161,14 +161,14 @@ A tela financeira trabalha com os status:
 | `/login` | `GET` | login administrativo |
 | `/login` | `POST` | autenticação do administrador |
 | `/logout` | `GET` | logout |
-| `/adm` | `GET` | dashboard legado |
+| `/adm` | `GET` | `DashboardController::index()` |
 | `/register` | `GET` | `UserController::create()` |
 | `/register` | `POST` | `UserController::store()` |
 | `/edit` | `GET` | `UserController::edit()` |
 | `/update` | `POST` | `UserController::update()` |
-| `/delete` | `GET` | exclusão legada |
-| `/financial` | `GET` | tela financeira legada |
-| `/download` | `GET` | exportação de PDF |
+| `/delete` | `GET` | `UserController::destroy()` |
+| `/financial` | `GET` | `FinancialController::index()` |
+| `/download` | `GET` | `UserController::downloadPdf()` |
 
 ## Banco de dados
 
@@ -320,14 +320,13 @@ php -S localhost:8000 index.php
 
 - conexão PDO centralizada
 - autenticação administrativa com sessão
-- base MVC iniciada
+- fluxo principal em MVC
 - repositórios com prepared statements
 - integração com PostgreSQL via Docker
 - automações n8n separadas em workflows importáveis
 
 ### O que ainda pode evoluir
 
-- concluir a migração das rotas legadas para controllers e views
 - padronizar encoding UTF-8 em todos os arquivos
 - expor planos dinamicamente nas telas
 - adicionar testes automatizados
@@ -335,4 +334,4 @@ php -S localhost:8000 index.php
 
 ## Resumo
 
-O projeto já funciona como uma base real de gestão de academia e agora possui uma documentação única na raiz, alinhada com a estrutura atual e com a transição para MVC.
+O projeto já funciona como uma base real de gestão de academia e agora possui uma documentação única na raiz, alinhada com a estrutura MVC atual e com os arquivos legados isolados para estudo.

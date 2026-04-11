@@ -173,4 +173,27 @@ class UserController
         $dompdf->render();
         $dompdf->stream('usuarios.pdf');       
     }
+
+    public function destroy(): void
+    {
+        $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        if (!$userId) {
+            http_response_code(404);
+            echo 'Usuario nao encontrado.';
+            return;
+        }
+
+        $user = $this->userRepository->searchUser($userId);
+
+        if (!$user) {
+            http_response_code(404);
+            echo 'Usuario nao encontrado.';
+            return;
+        }
+
+        $this->userRepository->deleteUser($userId);
+
+        header('Location: /');
+    }
 }

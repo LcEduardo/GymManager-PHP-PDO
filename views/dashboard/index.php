@@ -1,39 +1,3 @@
-<?php
-
-use App\Infra\Connection;
-use App\Repository\UserRepository;
-use App\Repository\SubscriptionRepository;
-
-$connection = Connection::getConnection();
-$repository = new UserRepository($connection);
-$SubriptionRepository = new SubscriptionRepository($connection);
-
-function getMonthRange($year = null, $month = null) {
-    $year = $year ?? date('Y');
-    $month = $month ?? date('m');
-
-    $firstDay = date("Y-m-01", strtotime("$year-$month-01"));
-    $lastDay = date("Y-m-t", strtotime("$year-$month-01"));
-
-    return [$firstDay, $lastDay];
-}
-
-try {
-    $users = $repository->getAllUsers();
-    $usersActive = $repository->countUsersByStatus('S');
-    $usersPremium = $SubriptionRepository->countPlan('Premium');
-
-    list($firstDay, $lastDay) = getMonthRange();
-
-    $usersActivesThisMonth = $repository->usersActivesThisMonth($lastDay, $firstDay);
-    $monthlyRevenue = $SubriptionRepository->getMonthlyRevenue($firstDay, $lastDay);
-    $dueSubscriptions = $SubriptionRepository->countDueSubscriptions();
-} catch (PDOException $e) {
-    echo $e->getMessage();
-}
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +8,7 @@ try {
     <link rel="stylesheet" href="/public/css/index.css">
 </head>
 <body>
-    <?php require __DIR__ . '/partials/app-header.php'; ?>
+    <?php require dirname(__DIR__, 2) . '/partials/app-header.php'; ?>
 
     <div id="dashboard" class="screen">
 
@@ -59,7 +23,6 @@ try {
       <div class="stat-card">
         <div class="stat-label">Receita Mensal</div>
         <div class="stat-value">R$ <?= number_format($monthlyRevenue, 2, ',', '.') ?></div>
-        <div class="stat-delta">▲ +7% vs mês anterior</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Planos Premium</div>
@@ -82,11 +45,11 @@ try {
             <th>Email</th>
             <th>Telefone</th>
             <th>Status</th>
-            <th>Ações</th>
+            <th>AÃ§Ãµes</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach($users as $user):  ?>
+          <?php foreach ($users as $user): ?>
           <tr>
             <td><?= $user->createdAt() ?></td>
             <td><?= $user->fullName() ?></td>
@@ -96,7 +59,7 @@ try {
             <td>
               <div class="actions">
                 <a href="/edit?id=<?= $user->id() ?>"><button><img src="/public/img/icons/edit.png" class="icon-trash" alt="editar"></button></a>
-                <a href="/delete?id=<?= $user->id() ?>" ><button style="background-color: red;"><img src="/public/img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
+                <a href="/delete?id=<?= $user->id() ?>"><button style="background-color: red;"><img src="/public/img/icons/close.png" class="icon-trash" alt="excluir"></button></a>
               </div>
             </td>
           </tr>
@@ -104,7 +67,7 @@ try {
         </tbody>
       </table>
       <div class="actions">
-        <a href="/register"><button>Cadastrar usuário</button></a>
+        <a href="/register"><button>Cadastrar Usuários</button></a>
         <a href="/download"><button>Baixar PDF</button></a>
         <a href="/financial"><button style="background-color: var(--color-success);">Financeiro</button></a>
       </div>

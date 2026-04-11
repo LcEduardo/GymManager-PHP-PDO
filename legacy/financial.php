@@ -1,5 +1,7 @@
 <?php
 
+// Exemplo legado pre-MVC mantido apenas para estudo da evolucao do projeto.
+
 use App\Infra\Connection;
 use App\Repository\SubscriptionRepository;
 
@@ -43,20 +45,20 @@ $hoje = date('Y-m-d');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Financeiro – Academia</title>
+  <title>Financeiro â€“ Academia</title>
   <link rel="stylesheet" href="/public/css/style.css">
   <link rel="stylesheet" href="/public/css/financial.css">
   <link rel="stylesheet" href="/public/css/index.css">
 </head>
 <body>
-  <?php require __DIR__ . '/partials/app-header.php'; ?>
+  <?php require __DIR__ . '/../partials/app-header.php'; ?>
 
   <div class="screen">
 
     <div class="page-title">Financeiro</div>
     
     <div class="filter-bar">
-      <!-- $valor é a chave do filtro (ex: 'paid'), e $label é o texto exibido no botão (ex: 'Pago') -->
+      <!-- $valor Ã© a chave do filtro (ex: 'paid'), e $label Ã© o texto exibido no botÃ£o (ex: 'Pago') -->
       <?php foreach ($labelMap as $valor => $label): ?>
         <a href="/financial?status=<?= $valor ?>">
           <button class="filter-btn <?= $filtro === $valor ? $activeBtnMap[$valor] : '' ?>">
@@ -76,7 +78,7 @@ $hoje = date('Y-m-d');
           <tr>
             <th>Aluno</th>
             <th>Plano</th>
-            <th>Início</th>
+            <th>InÃ­cio</th>
             <th>Vencimento</th>
             <th>Status</th>
           </tr>
@@ -87,7 +89,7 @@ $hoje = date('Y-m-d');
               <td colspan="5">
                 <div class="empty-state">
                   <strong>Nenhuma assinatura encontrada</strong>
-                  <p>Não há registros para o filtro "<?= htmlspecialchars($labelMap[$filtro]) ?>".</p>
+                  <p>NÃ£o hÃ¡ registros para o filtro "<?= htmlspecialchars($labelMap[$filtro]) ?>".</p>
                 </div>
               </td>
             </tr>
@@ -117,7 +119,7 @@ $hoje = date('Y-m-d');
       </table>
 
       <div class="table-footer">
-        <a href="/" class="btn btn-secondary">← Voltar ao painel</a>
+        <a href="/" class="btn btn-secondary">â† Voltar ao painel</a>
       </div>
     </div>
 
