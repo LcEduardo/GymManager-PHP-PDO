@@ -109,6 +109,127 @@ Exemplo com o PDF:
 
 Essa separacao reduz acoplamento, evita inicializacao desnecessaria em rotas que nao geram PDF e deixa mais claro quais dependencias pertencem ao controller inteiro e quais pertencem apenas a uma funcionalidade especifica.
 
+## Como o front controller funciona
+
+O arquivo `public/index.php` é o ponto de entrada único da aplicação. Toda requisição passa por ele antes de chegar a qualquer controller.
+
+### 1. Inicialização da sessão
+
+```php
+session_start();
+```
+
+Abre ou retoma a sessão PHP. Precisa ser a primeira instrução antes de qualquer output, pois o PHP envia o cookie de sessão no cabeçalho HTTP.
+
+### 2. Check do servidor embutido
+
+```php
+if (PHP_SAPI === 'cli-server') {
+    $requestedPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($requestedPath)) {
+        return false;
+    }
+}
+```
+
+Quando a aplicação sobe com `php -S localhost:8000`, o servidor embutido roteia tudo pelo `index.php` — inclusive arquivos estáticos como CSS e imagens. Este bloco intercepta isso: se o arquivo existe em disco dentro de `public/`, retorna `false` e deixa o servidor embutido servi-lo diretamente, sem executar o resto do PHP.
+
+### 3. Autoloader e aliases
+
+```php
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+use App\Controller\AuthController;
+// ...
+```
+
+Carrega o Composer, que registra o autoloader PSR-4. A partir daqui, qualquer `new AuthController()` funciona sem `require` manual. Os `use` são apenas apelidos de namespace — dizem ao PHP qual classe está sendo referenciada pelo nome curto.
+
+### 4. Extração da URI e método HTTP
+
+```php
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri = rtrim($uri, '/') ?: '/';
+$method = $_SERVER['REQUEST_METHOD'];
+$isAuthenticated = isset($_SESSION['admin']);
+```
+
+- `parse_url` extrai só o caminho da URL, descartando query string como `?id=3`
+- `rtrim` remove a barra final (`/register/` vira `/register`), e `?: '/'` garante que a raiz não vire string vazia
+- `$isAuthenticated` verifica se existe a chave `admin` na sessão, definida no login
+
+### 5. Tabela de rotas
+
+```php
+$routes = [
+    ['GET',  '/',       AuthController::class, 'login',        false],
+    ['POST', '/login',  AuthController::class, 'authenticate', false],
+    // ...
+];
+```
+
+Cada entrada tem 5 posições:
+
+| Posição | Significado |
+|---|---|
+| `[0]` | Método HTTP esperado |
+| `[1]` | URI esperada |
+| `[2]` | Classe do controller |
+| `[3]` | Método do controller a chamar |
+| `[4]` | Se exige autenticação (`true`/`false`) |
+
+Toda a configuração de rotas fica em um único lugar. Para adicionar uma rota nova, basta adicionar uma linha.
+
+### 6. Loop de matching
+
+```php
+foreach ($routes as [$routeMethod, $routeUri, $controllerClass, $action, $requiresAuth]) {
+    if ($method !== $routeMethod || $uri !== $routeUri) {
+        continue;
+    }
+    // ...
+}
+```
+
+O PHP percorre cada rota comparando o método e a URI da requisição atual. Se não bater, `continue` pula para a próxima.
+
+### 7. Guards de autenticação
+
+```php
+if (!$requiresAuth && $isAuthenticated && ($routeUri === '/' || $routeUri === '/login')) {
+    header('Location: /adm');
+    return;
+}
+
+if ($requiresAuth && !$isAuthenticated) {
+    header('Location: /login');
+    return;
+}
+```
+
+- Se a rota **não exige auth** mas o usuário **já está logado**, redireciona para o dashboard — evita que um admin autenticado fique na tela de login
+- Se a rota **exige auth** mas o usuário **não está logado**, redireciona para o login
+
+### 8. Execução do controller
+
+```php
+(new $controllerClass())->$action();
+return;
+```
+
+Instancia o controller da rota que bateu e chama o método correspondente. O controller só é instanciado aqui, no momento em que a rota é encontrada — não no início da requisição. O `return` encerra o script, impedindo que outras rotas sejam testadas.
+
+### 9. Fallback 404
+
+```php
+http_response_code(404);
+echo '<h1>404 - Pagina nao encontrada</h1>';
+```
+
+Se o `foreach` terminar sem nenhum `return`, nenhuma rota bateu — responde com 404.
+
+---
+
 ## Fluxo principal
 
 ### Login administrativo
